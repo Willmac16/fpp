@@ -50,6 +50,7 @@ assert
 async
 at
 base
+bitfield
 block
 bool
 change

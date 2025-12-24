@@ -25,6 +25,17 @@ _]_
 _[_
 `format` <<Expressions_String-Literals,_string-literal_>>
 _]_
+_[_
+`bitfield` `{` _bitfield-field-sequence_ `}`
+_]_
+
+_bitfield-field-sequence_ is an <<Element-Sequences,element sequence>>
+in which the elements are bitfield fields, and the terminating
+punctuation is a comma.
+A *bitfield field* has the following syntax:
+
+<<Lexical-Elements_Identifiers,_identifier_>> `:`
+<<Expressions_Integer-Literals,_integer-literal_>>
 
 ==== Semantics
 
@@ -50,6 +61,16 @@ The format is applied when displaying the struct member.
 There is one argument to the format string, which is the member value.
 If the size of the member is greater than one, then the
 translator applies the format to each element.
+
+The optional bitfield specifier for a struct member specifies a list
+of named bitfield fields within the member.
+If present, the member type must be a primitive integer type
+(`I8`, `I16`, `I32`, `I64`, `U8`, `U16`, `U32`, or `U64`).
+Each bitfield field size must be greater than zero,
+and the total size of all the fields must be less than or equal to
+the bit width of the member type.
+Fields are ordered from least significant to most significant bit
+in the order they appear in the specification.
 
 The expression following the keyword `default` is optional.
 If present, it specifies the <<Types_Default-Values,default value>>
@@ -85,6 +106,11 @@ struct B {
 struct C {
   x: U32 format "{} counts"
   y: F32 format "{} m/s"
+}
+
+# Defines a struct type E with bitfield member flags
+struct E {
+  flags: U8 bitfield { enabled: 1, mode: 2, reserved: 5 }
 }
 
 # Defines a struct type D with member x

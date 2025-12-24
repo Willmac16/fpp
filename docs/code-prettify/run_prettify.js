@@ -413,6 +413,7 @@ var IN_GLOBAL_SCOPE = false;
           "async," +
           "at," +
           "base," +
+          "bitfield," +
           "block," +
           "bool," +
           "change," +

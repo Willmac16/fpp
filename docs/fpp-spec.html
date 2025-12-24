@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.23">
+<meta name="generator" content="Asciidoctor 2.0.26">
 <title>The F Prime Prime (FPP) Language Specification, v3.1.0</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -116,7 +116,6 @@ h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title str
 :not(pre):not([class^=L])>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background:#f7f7f8;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed}
 pre{color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;line-height:1.45;text-rendering:optimizeSpeed}
 pre code,pre pre{color:inherit;font-size:inherit;line-height:inherit}
-pre>code{display:block}
 pre.nowrap,pre.nowrap pre{white-space:pre;word-wrap:normal}
 em em{font-style:normal}
 strong strong{font-weight:400}
@@ -219,6 +218,7 @@ table.tableblock.fit-content>caption.title{white-space:nowrap;width:0}
 .literalblock pre,.listingblock>.content>pre:not(.highlight),.listingblock>.content>pre[class=highlight],.listingblock>.content>pre[class^="highlight "]{background:#f7f7f8}
 .literalblock.output pre{color:#f7f7f8;background:rgba(0,0,0,.9)}
 .listingblock>.content{position:relative}
+.listingblock pre>code{display:block}
 .listingblock code[data-lang]::before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:inherit;opacity:.5}
 .listingblock:hover code[data-lang]::before{display:block}
 .listingblock.terminal pre .command::before{content:attr(data-prompt);padding-right:.5em;color:inherit;opacity:.5}
@@ -1171,6 +1171,7 @@ assert
 async
 at
 base
+bitfield
 block
 bool
 change
@@ -3527,7 +3528,20 @@ A <strong>struct type member</strong> has the following syntax:</p>
 <a href="#Type-Names"><em>type-name</em></a>
 <em>[</em>
 <code>format</code> <a href="#Expressions_String-Literals"><em>string-literal</em></a>
+<em>]</em>
+<em>[</em>
+<code>bitfield</code> <code>{</code> <em>bitfield-field-sequence</em> <code>}</code>
 <em>]</em></p>
+</div>
+<div class="paragraph">
+<p><em>bitfield-field-sequence</em> is an <a href="#Element-Sequences">element sequence</a>
+in which the elements are bitfield fields, and the terminating
+punctuation is a comma.
+A <strong>bitfield field</strong> has the following syntax:</p>
+</div>
+<div class="paragraph">
+<p><a href="#Lexical-Elements_Identifiers"><em>identifier</em></a> <code>:</code>
+<a href="#Expressions_Integer-Literals"><em>integer-literal</em></a></p>
 </div>
 </div>
 <div class="sect3">
@@ -3557,6 +3571,17 @@ The format is applied when displaying the struct member.
 There is one argument to the format string, which is the member value.
 If the size of the member is greater than one, then the
 translator applies the format to each element.</p>
+</div>
+<div class="paragraph">
+<p>The optional bitfield specifier for a struct member specifies a list
+of named bitfield fields within the member.
+If present, the member type must be a primitive integer type
+(<code>I8</code>, <code>I16</code>, <code>I32</code>, <code>I64</code>, <code>U8</code>, <code>U16</code>, <code>U32</code>, or <code>U64</code>).
+Each bitfield field size must be greater than zero,
+and the total size of all the fields must be less than or equal to
+the bit width of the member type.
+Fields are ordered from least significant to most significant bit
+in the order they appear in the specification.</p>
 </div>
 <div class="paragraph">
 <p>The expression following the keyword <code>default</code> is optional.
@@ -3595,6 +3620,11 @@ struct B {
 struct C {
   x: U32 format "{} counts"
   y: F32 format "{} m/s"
+}
+
+# Defines a struct type E with bitfield member flags
+struct E {
+  flags: U8 bitfield { enabled: 1, mode: 2, reserved: 5 }
 }
 
 # Defines a struct type D with member x
@@ -12037,7 +12067,7 @@ equivalent.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-12-01 20:21:22 -0800
+Last updated 2025-12-24 11:47:04 -0800
 </div>
 </div>
 <script src="code-prettify/run_prettify.js"></script>
@@ -12064,6 +12094,6 @@ MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
   })
 })
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 </body>
 </html>

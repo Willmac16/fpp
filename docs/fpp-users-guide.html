@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.23">
+<meta name="generator" content="Asciidoctor 2.0.26">
 <title>The F Prime Prime (FPP) User&#8217;s Guide, v3.1.0</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -116,7 +116,6 @@ h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title str
 :not(pre):not([class^=L])>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background:#f7f7f8;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed}
 pre{color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;line-height:1.45;text-rendering:optimizeSpeed}
 pre code,pre pre{color:inherit;font-size:inherit;line-height:inherit}
-pre>code{display:block}
 pre.nowrap,pre.nowrap pre{white-space:pre;word-wrap:normal}
 em em{font-style:normal}
 strong strong{font-weight:400}
@@ -219,6 +218,7 @@ table.tableblock.fit-content>caption.title{white-space:nowrap;width:0}
 .literalblock pre,.listingblock>.content>pre:not(.highlight),.listingblock>.content>pre[class=highlight],.listingblock>.content>pre[class^="highlight "]{background:#f7f7f8}
 .literalblock.output pre{color:#f7f7f8;background:rgba(0,0,0,.9)}
 .listingblock>.content{position:relative}
+.listingblock pre>code{display:block}
 .listingblock code[data-lang]::before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:inherit;opacity:.5}
 .listingblock:hover code[data-lang]::before{display:block}
 .listingblock.terminal pre .command::before{content:attr(data-prompt);padding-right:.5em;color:inherit;opacity:.5}
@@ -495,8 +495,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#Defining-Types_Struct-Type-Definitions_Default-Values">6.2.3. Default Values</a></li>
 <li><a href="#Defining-Types_Struct-Type-Definitions_Member-Arrays">6.2.4. Member Arrays</a></li>
 <li><a href="#Defining-Types_Struct-Type-Definitions_Member-Format-Strings">6.2.5. Member Format Strings</a></li>
-<li><a href="#Defining-Types_Struct-Type-Definitions_Struct-Types-Containing-Named-Types">6.2.6. Struct Types Containing Named Types</a></li>
-<li><a href="#Defining-Types_Struct-Type-Definitions_The-Order-of-Members">6.2.7. The Order of Members</a></li>
+<li><a href="#Defining-Types_Struct-Type-Definitions_Bitfield-Members">6.2.6. Bitfield Members</a></li>
+<li><a href="#Defining-Types_Struct-Type-Definitions_Struct-Types-Containing-Named-Types">6.2.7. Struct Types Containing Named Types</a></li>
+<li><a href="#Defining-Types_Struct-Type-Definitions_The-Order-of-Members">6.2.8. The Order of Members</a></li>
 </ul>
 </li>
 <li><a href="#Defining-Types_Abstract-Type-Definitions">6.3. Abstract Type Definitions</a></li>
@@ -2810,7 +2811,32 @@ elements of the member <code>velocity</code>.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="Defining-Types_Struct-Type-Definitions_Struct-Types-Containing-Named-Types">6.2.6. Struct Types Containing Named Types</h4>
+<h4 id="Defining-Types_Struct-Type-Definitions_Bitfield-Members">6.2.6. Bitfield Members</h4>
+<div class="paragraph">
+<p>For any struct member with a primitive integer type, you can include an
+optional bitfield specification. To do this, write the keyword <code>bitfield</code>
+followed by a list of field names and sizes enclosed in braces <code>{</code> &#8230;&#8203; <code>}</code>.
+Each field size is an integer literal giving the number of bits.
+Fields are ordered from least significant to most significant bit
+in the order they appear.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code data-lang="fpp">struct Flags {
+  status: U16 bitfield { enabled: 1, mode: 3, prio: 4, reserved: 8 }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Each field size must be greater than zero, and the sum of the field sizes
+must be less than or equal to the bit width of the member type.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="Defining-Types_Struct-Type-Definitions_Struct-Types-Containing-Named-Types">6.2.7. Struct Types Containing Named Types</h4>
 <div class="paragraph">
 <p>A struct type may have an array or struct type as a member type.
 In this way you can define a struct that has arrays or structs as members.
@@ -2842,7 +2868,7 @@ struct S3 { s1: S1, a: A } default { s1 = { y = "abc" }, a = 5 }</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="Defining-Types_Struct-Type-Definitions_The-Order-of-Members">6.2.7. The Order of Members</h4>
+<h4 id="Defining-Types_Struct-Type-Definitions_The-Order-of-Members">6.2.8. The Order of Members</h4>
 <div class="paragraph">
 <p>For <a href="#Defining-Constants_Expressions_Struct-Values">struct values</a>,
 we said that the order in which the members appear in the value is not
@@ -16224,7 +16250,7 @@ serialized according to its
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-12-01 20:22:00 -0800
+Last updated 2025-12-24 11:50:10 -0800
 </div>
 </div>
 <script src="code-prettify/run_prettify.js"></script>
@@ -16251,6 +16277,6 @@ MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
   })
 })
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 </body>
 </html>

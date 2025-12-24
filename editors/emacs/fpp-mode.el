@@ -41,7 +41,7 @@
 
 (defconst fpp-mode-keywords
   '("action" "active" "activity" "always"  "assert"
-    "at" "base" "block" "change" "choice" "command"
+    "at" "base" "bitfield" "block" "change" "choice" "command"
     "connections" "cpu" "default" "diagnostic" "dictionary" "do"
     "drop" "else" "entry" "event" "every" "exit" "external"
     "false" "fatal" "format" "get" "guard"

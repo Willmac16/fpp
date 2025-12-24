@@ -17,6 +17,7 @@ syn keyword fppKeyword assert
 syn keyword fppKeyword async
 syn keyword fppKeyword at
 syn keyword fppKeyword base
+syn keyword fppKeyword bitfield
 syn keyword fppKeyword block
 syn keyword fppKeyword change
 syn keyword fppKeyword choice

@@ -509,6 +509,27 @@ struct Telemetry {
 The format string is applied to each of the three
 elements of the member `velocity`.
 
+==== Bitfield Members
+
+For any struct member with a primitive integer type, you can include an
+optional bitfield specification. To do this, write the keyword `bitfield`
+followed by a list of field names and sizes enclosed in braces `{` ... `}`.
+Each field size is an integer literal giving the number of bits.
+Fields are ordered from least significant to most significant bit
+in the order they appear.
+
+For example:
+
+[source,fpp]
+----
+struct Flags {
+  status: U16 bitfield { enabled: 1, mode: 3, prio: 4, reserved: 8 }
+}
+----
+
+Each field size must be greater than zero, and the sum of the field sizes
+must be less than or equal to the bit width of the member type.
+
 ==== Struct Types Containing Named Types
 
 A struct type may have an array or struct type as a member type.
@@ -709,5 +730,3 @@ provided by F Prime, and if they are defined, then they must
 conform to certain rules.
 https://nasa.github.io/fpp/fpp-spec.html#Definitions_Framework-Definitions_Type-Definitions[_The 
 FPP Language Specification_] has all the details.
-
-

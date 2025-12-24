@@ -19,7 +19,7 @@ case class StructCppWriter(
 
   private val fileName = ComputeCppFiles.FileNames.getStruct(name)
 
-  private val structType@Type.Struct(_, _, _, _, _) = s.a.typeMap(node.id)
+  private val structType@Type.Struct(_, _, _, _, _, _) = s.a.typeMap(node.id)
 
   private val namespaceIdentList = s.getNamespaceIdentList(symbol)
 
@@ -32,6 +32,8 @@ case class StructCppWriter(
   private val sizes = structType.sizes
 
   private val formats = structType.formats
+
+  private val bitfields = structType.bitfields
 
   // List of tuples (<memberName>, <memberTypeName>)
   // Preserves ordering of struct members
@@ -465,10 +467,58 @@ case class StructCppWriter(
         "status != Fw::FW_SERIALIZE_OK",
         lines("return status;")
       )
-    def writeSerializeCall(n: String) =
-      line(s"status = buffer.serializeFrom(this->m_$n, mode);") :: writeSerializeStatusCheck
-    def writeDeserializeCall(n: String) =
-      line(s"status = buffer.deserializeTo(this->m_$n, mode);") :: writeSerializeStatusCheck
+
+    def writeBitfieldPack(n: String, spec: Ast.BitfieldSpec): List[CppDoc.Line] = {
+      val memberType = typeMembers(n).asInstanceOf[Type.PrimitiveInt]
+      val containerType = typeCppWriter.write(memberType)
+      var bitOffset = 0
+      val packLines = spec.fields.flatMap { fieldNode =>
+        val field = fieldNode.data
+        val fieldName = field.name
+        val fieldSize = field.size
+        val mask = (1 << fieldSize) - 1
+        val line = s"packed_$n |= (this->m_${n}_$fieldName & 0x${mask.toHexString}) << $bitOffset;"
+        bitOffset += fieldSize
+        List(CppDoc.Line.Blank, addIndent(1, CppDoc.Line.Direct(line)))
+      }
+      lines(s"$containerType packed_$n = 0;") ++ packLines
+    }
+
+    def writeBitfieldUnpack(n: String, spec: Ast.BitfieldSpec): List[CppDoc.Line] = {
+      var bitOffset = 0
+      spec.fields.flatMap { fieldNode =>
+        val field = fieldNode.data
+        val fieldName = field.name
+        val fieldSize = field.size
+        val mask = (1 << fieldSize) - 1
+        val line = s"this->m_${n}_$fieldName = (packed_$n >> $bitOffset) & 0x${mask.toHexString};"
+        bitOffset += fieldSize
+        List(CppDoc.Line.Blank, addIndent(1, CppDoc.Line.Direct(line)))
+      }
+    }
+
+    def writeSerializeCall(n: String) = {
+      if bitfields.contains(n) then
+        val spec = bitfields(n)
+        writeBitfieldPack(n, spec) ++
+        line(s"status = buffer.serializeFrom(packed_$n, mode);") ::
+        writeSerializeStatusCheck
+      else
+        line(s"status = buffer.serializeFrom(this->m_$n, mode);") :: writeSerializeStatusCheck
+    }
+
+    def writeDeserializeCall(n: String) = {
+      if bitfields.contains(n) then
+        val spec = bitfields(n)
+        val memberType = typeMembers(n).asInstanceOf[Type.PrimitiveInt]
+        val containerType = typeCppWriter.write(memberType)
+        lines(s"$containerType packed_$n;") ++
+        line(s"status = buffer.deserializeTo(packed_$n, mode);") ::
+        writeSerializeStatusCheck ++
+        writeBitfieldUnpack(n, spec)
+      else
+        line(s"status = buffer.deserializeTo(this->m_$n, mode);") :: writeSerializeStatusCheck
+    }
 
     List(
       List(
@@ -590,68 +640,115 @@ case class StructCppWriter(
   private def getGetterFunctionMembers: List[CppDoc.Class.Member] = {
     def getGetterName(n: String) = s"get_$n"
 
-    memberList.flatMap((n, tn) => (sizes.contains(n), typeMembers(n).getUnderlyingType) match {
-      case (false, _: Type.Enum) => List(
-        CppDoc.Class.Member.Lines(
-          CppDoc.Lines(
+    memberList.flatMap((n, tn) =>
+      if bitfields.contains(n) then
+        // Generate getter for each bitfield sub-field
+        val spec = bitfields(n)
+        spec.fields.map(fieldNode => {
+          val field = fieldNode.data
+          val fieldName = field.name
+          linesClassMember(
+            lines(
+              s"""|
+                  |//! Get bitfield sub-field ${n}_$fieldName
+                  |${tn} ${getGetterName(s"${n}_$fieldName")}() const
+                  |{
+                  |  return this->m_${n}_$fieldName;
+                  |}"""
+            )
+          )
+        })
+      else (sizes.contains(n), typeMembers(n).getUnderlyingType) match {
+        case (false, _: Type.Enum) => List(
+          CppDoc.Class.Member.Lines(
+            CppDoc.Lines(
+              lines(
+                s"""|
+                    |//! Get member $n
+                    |${writeMemberAsReturnType((n, tn))} ${getGetterName(n)}() const
+                    |{
+                    |  return this->m_$n.e;
+                    |}"""
+              ),
+            )
+          )
+        )
+        case (false, t) if s.isPrimitive(t, tn) => List(
+          linesClassMember(
             lines(
               s"""|
                   |//! Get member $n
                   |${writeMemberAsReturnType((n, tn))} ${getGetterName(n)}() const
                   |{
-                  |  return this->m_$n.e;
+                  |  return this->m_$n;
                   |}"""
             ),
           )
         )
-      )
-      case (false, t) if s.isPrimitive(t, tn) => List(
-        linesClassMember(
-          lines(
-            s"""|
-                |//! Get member $n
-                |${writeMemberAsReturnType((n, tn))} ${getGetterName(n)}() const
-                |{
-                |  return this->m_$n;
-                |}"""
-          ),
+        case _ => List(
+          linesClassMember(
+            lines(
+              s"""|
+                  |//! Get member $n
+                  |${writeMemberAsReturnType((n, tn))} ${getGetterName(n)}()
+                  |{
+                  |  return this->m_$n;
+                  |}
+                  |
+                  |//! Get member $n (const)
+                  |${writeMemberAsReturnType((n, tn), StructCppWriter.Const)} ${getGetterName(n)}() const
+                  |{
+                  |  return this->m_$n;
+                  |}"""
+            ),
+          )
         )
-      )
-      case _ => List(
-        linesClassMember(
-          lines(
-            s"""|
-                |//! Get member $n
-                |${writeMemberAsReturnType((n, tn))} ${getGetterName(n)}()
-                |{
-                |  return this->m_$n;
-                |}
-                |
-                |//! Get member $n (const)
-                |${writeMemberAsReturnType((n, tn), StructCppWriter.Const)} ${getGetterName(n)}() const
-                |{
-                |  return this->m_$n;
-                |}"""
-          ),
-        )
-      )
-    })
+      }
+    )
   }
 
-  private def getSetterFunctionMembers: List[CppDoc.Class.Member] =
-    functionClassMember(
-      Some("Set all members"),
-      "set",
-      memberList.map(writeMemberAsParam),
-      CppDoc.Type("void"),
-      List(
-        nonArrayMemberNames.map(n => line(s"this->m_$n = $n;")),
-        if arrayMemberNames.isEmpty then Nil
-        else Line.blank :: writeArraySetters(n => s"$n[i]"),
-      ).flatten
-    ) ::
-      memberList.map((n, tn) =>
-        functionClassMember(
+  private def getSetterFunctionMembers: List[CppDoc.Class.Member] = {
+    // Get list of non-bitfield member names for "set all" function
+    val nonBitfieldMembers = memberList.filterNot((n, _) => bitfields.contains(n))
+
+    val setAllFunction = if nonBitfieldMembers.nonEmpty then
+      List(functionClassMember(
+        Some("Set all non-bitfield members"),
+        "set",
+        nonBitfieldMembers.map(writeMemberAsParam),
+        CppDoc.Type("void"),
+        List(
+          nonBitfieldMembers.map((n, _) => line(s"this->m_$n = $n;")).filter(!sizes.contains(_)),
+          if arrayMemberNames.isEmpty then Nil
+          else Line.blank :: writeArraySetters(n => s"$n[i]"),
+        ).flatten
+      ))
+    else Nil
+
+    val individualSetters = memberList.flatMap((n, tn) =>
+      if bitfields.contains(n) then
+        // Generate setter for each bitfield sub-field
+        val spec = bitfields(n)
+        spec.fields.map(fieldNode => {
+          val field = fieldNode.data
+          val fieldName = field.name
+          val fieldSize = field.size
+          val mask = (1 << fieldSize) - 1
+          functionClassMember(
+            Some(s"Set bitfield sub-field ${n}_$fieldName"),
+            s"set_${n}_$fieldName",
+            List(
+              CppDoc.Function.Param(
+                CppDoc.Type(tn),
+                "value"
+              )
+            ),
+            CppDoc.Type("void"),
+            lines(s"this->m_${n}_$fieldName = value & 0x${mask.toHexString};")
+          )
+        })
+      else
+        List(functionClassMember(
           Some(s"Set member $n"),
           s"set_$n",
           List(
@@ -662,8 +759,11 @@ case class StructCppWriter(
             iterateN(sizes(n), lines(s"this->m_$n[i] = $n[i];"))
           else
             lines(s"this->m_$n = $n;")
-        )
-      )
+        ))
+    )
+
+    setAllFunction ++ individualSetters
+  }
 
   private def getVariableMembers: List[CppDoc.Class.Member] =
     List(
@@ -672,9 +772,22 @@ case class StructCppWriter(
       ),
       linesClassMember(
         CppDocWriter.writeBannerComment("Member variables") ++
-          addBlankPrefix(memberList.flatMap((n, tn) => lines(
-            writeMemberDecl(s, tn, n, typeMembers(n), "m_", sizes.get(n).map(_.toString))
-          )))
+          addBlankPrefix(memberList.flatMap((n, tn) =>
+            if bitfields.contains(n) then
+              // Generate individual member variables for each bitfield sub-field
+              val spec = bitfields(n)
+              val memberType = typeMembers(n).asInstanceOf[Type.PrimitiveInt]
+              val containerType = typeCppWriter.write(memberType)
+              spec.fields.flatMap(fieldNode => {
+                val field = fieldNode.data
+                val fieldName = field.name
+                val fieldSize = field.size
+                lines(s"//! Bitfield sub-field $fieldName ($fieldSize bit${if fieldSize > 1 then "s" else ""})") ++
+                lines(s"$containerType m_${n}_$fieldName;")
+              })
+            else
+              lines(writeMemberDecl(s, tn, n, typeMembers(n), "m_", sizes.get(n).map(_.toString)))
+          ))
       )
     )
 

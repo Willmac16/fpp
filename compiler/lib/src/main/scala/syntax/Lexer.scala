@@ -228,6 +228,7 @@ object Lexer {
         case ASYNC => Token.ASYNC()
         case AT => Token.AT()
         case BASE => Token.BASE()
+        case BITFIELD => Token.BITFIELD()
         case BLOCK => Token.BLOCK()
         case BOOL => Token.BOOL()
         case CHANGE => Token.CHANGE()

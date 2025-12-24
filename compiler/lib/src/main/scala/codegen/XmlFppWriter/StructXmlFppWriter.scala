@@ -43,7 +43,8 @@ object StructXmlFppWriter extends LineUtils {
           memberName,
           sizeOpt.map(size => AstNode.create(Ast.ExprLiteralInt(size))),
           AstNode.create(memberType),
-          fppFormatOpt.map(AstNode.create(_))
+          fppFormatOpt.map(AstNode.create(_)),
+          None
         )
         val astNode = AstNode.create(data)
         val post = XmlFppWriter.getAttributeComment(node)

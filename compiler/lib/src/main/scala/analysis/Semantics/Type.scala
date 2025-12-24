@@ -427,11 +427,11 @@ object Type {
           case None => false
         }
       pair match {
-        case Struct(_, anonStruct1, _, _, _) -> _ => 
+        case Struct(_, anonStruct1, _, _, _, _) -> _ =>
           anonStruct1.isConvertibleTo(t2)
-        case _ -> Struct(_, anonStruct2, _, _, _) => 
+        case _ -> Struct(_, anonStruct2, _, _, _, _) =>
           t1.isConvertibleTo(anonStruct2)
-        case AnonStruct(members1) -> AnonStruct(members2) => 
+        case AnonStruct(members1) -> AnonStruct(members2) =>
           members1.forall(memberExistsIn(members2) _)
         case _ -> AnonStruct(members2) =>
           t1.isPromotableToStruct &&
@@ -568,9 +568,9 @@ object Type {
         else None
       }
       pair match {
-        case (_, Struct(_, anonStruct2, _, _, _)) =>
+        case (_, Struct(_, anonStruct2, _, _, _, _)) =>
           commonType(t1, anonStruct2)
-        case (Struct(_, anonStruct1, _, _, _), _) =>
+        case (Struct(_, anonStruct1, _, _, _, _), _) =>
           commonType(anonStruct1, t2)
         case AnonStruct(members1) -> AnonStruct(members2) =>
           twoAnonStructs(members1, members2)

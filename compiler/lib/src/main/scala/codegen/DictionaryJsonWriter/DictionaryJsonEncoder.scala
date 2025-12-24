@@ -149,7 +149,7 @@ case class DictionaryJsonEncoder(
                     "kind" -> "qualifiedIdentifier".asJson,
                 )
             }
-            case Type.Struct(node, _, _, _, _) => {
+            case Type.Struct(node, _, _, _, _, _) => {
                 Json.obj(
                     "name" -> dictionaryState.a.getQualifiedName(Symbol.Struct(node)).toString.asJson,
                     "kind" -> "qualifiedIdentifier".asJson,
@@ -253,7 +253,7 @@ case class DictionaryJsonEncoder(
                     jsonWithOptionalValues(json, optionalValues)
                 }
                 case Symbol.Struct(preA, node, postA) => {
-                    val Type.Struct(_, _, default, sizes, _) = dictionaryState.a.typeMap(symbol.getNodeId)
+                    val Type.Struct(_, _, default, sizes, _, _) = dictionaryState.a.typeMap(symbol.getNodeId)
                     val memberFormatMap = node.data.members.flatMap { case (_, memberNode, _) =>
                         memberNode.data.format.map(format => memberNode.data.name -> format.data)
                     }.toMap

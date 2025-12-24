@@ -489,7 +489,7 @@ case class StructCppWriter(
         lines("return status;")
       )
 
-    def writeBitfieldPack(n: String, spec: Ast.BitfieldSpec): List[CppDoc.Line] = {
+    def writeBitfieldPack(n: String, spec: Ast.BitfieldSpec): List[Line] = {
       val memberType = typeMembers(n).asInstanceOf[Type.PrimitiveInt]
       val containerType = typeCppWriter.write(memberType)
       var bitOffset = 0
@@ -498,23 +498,23 @@ case class StructCppWriter(
         val fieldName = field.name
         val fieldSize = field.size
         val mask = (1 << fieldSize) - 1
-        val line = s"packed_$n |= (this->m_${n}_$fieldName & 0x${mask.toHexString}) << $bitOffset;"
+        val lineStr = s"packed_$n |= (this->m_${n}_$fieldName & 0x${mask.toHexString}) << $bitOffset;"
         bitOffset += fieldSize
-        List(CppDoc.Line.Blank, addIndent(1, CppDoc.Line.Direct(line)))
+        List(Line.blank, indentIn(line(lineStr)))
       }
       lines(s"$containerType packed_$n = 0;") ++ packLines
     }
 
-    def writeBitfieldUnpack(n: String, spec: Ast.BitfieldSpec): List[CppDoc.Line] = {
+    def writeBitfieldUnpack(n: String, spec: Ast.BitfieldSpec): List[Line] = {
       var bitOffset = 0
       spec.fields.flatMap { fieldNode =>
         val field = fieldNode.data
         val fieldName = field.name
         val fieldSize = field.size
         val mask = (1 << fieldSize) - 1
-        val line = s"this->m_${n}_$fieldName = (packed_$n >> $bitOffset) & 0x${mask.toHexString};"
+        val lineStr = s"this->m_${n}_$fieldName = (packed_$n >> $bitOffset) & 0x${mask.toHexString};"
         bitOffset += fieldSize
-        List(CppDoc.Line.Blank, addIndent(1, CppDoc.Line.Direct(line)))
+        List(Line.blank, indentIn(line(lineStr)))
       }
     }
 
@@ -522,8 +522,8 @@ case class StructCppWriter(
       if bitfields.contains(n) then
         val spec = bitfields(n)
         writeBitfieldPack(n, spec) ++
-        line(s"status = buffer.serializeFrom(packed_$n, mode);") ::
-        writeSerializeStatusCheck
+        (line(s"status = buffer.serializeFrom(packed_$n, mode);") ::
+        writeSerializeStatusCheck)
       else
         line(s"status = buffer.serializeFrom(this->m_$n, mode);") :: writeSerializeStatusCheck
     }
@@ -534,8 +534,8 @@ case class StructCppWriter(
         val memberType = typeMembers(n).asInstanceOf[Type.PrimitiveInt]
         val containerType = typeCppWriter.write(memberType)
         lines(s"$containerType packed_$n;") ++
-        line(s"status = buffer.deserializeTo(packed_$n, mode);") ::
-        writeSerializeStatusCheck ++
+        (line(s"status = buffer.deserializeTo(packed_$n, mode);") ::
+        writeSerializeStatusCheck) ++
         writeBitfieldUnpack(n, spec)
       else
         line(s"status = buffer.deserializeTo(this->m_$n, mode);") :: writeSerializeStatusCheck
@@ -739,7 +739,7 @@ case class StructCppWriter(
         nonBitfieldMembers.map(writeMemberAsParam),
         CppDoc.Type("void"),
         List(
-          nonBitfieldMembers.map((n, _) => line(s"this->m_$n = $n;")).filter(!sizes.contains(_)),
+          nonBitfieldMembers.filterNot((n, _) => sizes.contains(n)).map((n, _) => line(s"this->m_$n = $n;")),
           if arrayMemberNames.isEmpty then Nil
           else Line.blank :: writeArraySetters(n => s"$n[i]"),
         ).flatten
@@ -906,4 +906,3 @@ case object StructCppWriter {
   case object Const extends ReturnMode
   case object NonConst extends ReturnMode
 }
-

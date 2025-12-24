@@ -224,7 +224,7 @@ object CheckExprTypes extends UseAnalyzer {
           // Look at the left-hand side of the dot expression to determine the type
           case None =>
             a.typeMap(e.e.id).getUnderlyingType match {
-              case Type.Struct(sNode, anonStruct, _, _, _) =>
+              case Type.Struct(sNode, anonStruct, _, _, _, _) =>
                 anonStruct.members.get(e.id.data) match {
                   case Some(value) => Right(value)
                   case None => Left(SemanticError.InvalidStructMember(

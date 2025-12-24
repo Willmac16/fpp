@@ -401,7 +401,7 @@ object Value {
     }
 
     def convertToStruct(structType: Type.Struct): Option[Value.Struct] = {
-      val Type.Struct(_, anonStructType, _, _, _) = structType
+      val Type.Struct(_, anonStructType, _, _, _, _) = structType
       for (anonStruct <- convertToAnonStruct(anonStructType))
         yield Struct(anonStruct, structType)
     }

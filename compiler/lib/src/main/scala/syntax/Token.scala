@@ -16,6 +16,7 @@ object Token {
   final case class ASYNC() extends Token
   final case class AT() extends Token
   final case class BASE() extends Token
+  final case class BITFIELD() extends Token
   final case class BLOCK() extends Token
   final case class BOOL() extends Token
   final case class CHANGE() extends Token
@@ -168,6 +169,7 @@ enum TokenId {
   case ASYNC
   case AT
   case BASE
+  case BITFIELD
   case BLOCK
   case BOOL
   case CHANGE

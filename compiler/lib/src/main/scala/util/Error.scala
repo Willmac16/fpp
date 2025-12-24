@@ -156,6 +156,18 @@ sealed trait Error {
       case SemanticError.InvalidArraySize(loc, size) =>
         Error.print (Some(loc)) (s"invalid array size $size")
         printNote("size must be greater than zero")
+      case SemanticError.BitfieldOnNonInteger(loc, memberName, typeName) =>
+        Error.print (Some(loc)) (s"bitfield specifier on non-integer type")
+        printNote(s"member '$memberName' has type $typeName, but bitfields can only be applied to integer types (U8, U16, U32, U64, I8, I16, I32, I64)")
+      case SemanticError.BitfieldSizeExceedsContainer(loc, memberName, totalBits, containerBits) =>
+        Error.print (Some(loc)) (s"bitfield size exceeds container size")
+        printNote(s"member '$memberName' has bitfield specification totaling $totalBits bits, but container type only has $containerBits bits")
+      case SemanticError.InvalidBitfieldSize(loc, memberName) =>
+        Error.print (Some(loc)) (s"invalid bitfield size for member '$memberName'")
+        printNote("total bitfield size must be non-negative")
+      case SemanticError.InvalidBitfieldFieldSize(loc, fieldName) =>
+        Error.print (Some(loc)) (s"invalid bitfield field size")
+        printNote(s"field '$fieldName' must have size greater than zero")
       case SemanticError.InvalidCommand(loc, msg) =>
         Error.print (Some(loc)) (msg)
       case SemanticError.InvalidComponentInstance(loc, instanceName, topName) =>
@@ -529,6 +541,29 @@ object SemanticError {
   ) extends Error
   /** Invalid array size */
   final case class InvalidArraySize(loc: Location, size: BigInt) extends Error
+  /** Bitfield on non-integer type */
+  final case class BitfieldOnNonInteger(
+    loc: Location,
+    memberName: String,
+    typeName: String
+  ) extends Error
+  /** Bitfield size exceeds container */
+  final case class BitfieldSizeExceedsContainer(
+    loc: Location,
+    memberName: String,
+    totalBits: Int,
+    containerBits: Int
+  ) extends Error
+  /** Invalid bitfield size */
+  final case class InvalidBitfieldSize(
+    loc: Location,
+    memberName: String
+  ) extends Error
+  /** Invalid bitfield field size */
+  final case class InvalidBitfieldFieldSize(
+    loc: Location,
+    fieldName: String
+  ) extends Error
   /** Invalid command */
   final case class InvalidCommand(loc: Location, msg: String) extends Error
   /** Invalid component instance */

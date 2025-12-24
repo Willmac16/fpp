@@ -35,6 +35,7 @@ object Lexer {
     ("async", ASYNC),
     ("at", AT),
     ("base", BASE),
+    ("bitfield", BITFIELD),
     ("block", BLOCK),
     ("bool", BOOL),
     ("change", CHANGE),

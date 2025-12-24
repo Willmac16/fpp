@@ -107,7 +107,7 @@ object FinalizeTypeDefs
       val (_, node, _) = aNode
       val data = node.data
       // Get the type of this node as a struct type S
-      val structType @ Type.Struct(_, _, _, _, _) = a.typeMap(node.id)
+      val structType @ Type.Struct(_, _, _, _, _, _) = a.typeMap(node.id)
       for {
         // Visit the anonymous struct type of S, to update its members
         t <- TypeVisitor.ty(a, structType.anonStruct)
@@ -159,13 +159,67 @@ object FinalizeTypeDefs
             pairs.filter(_.isDefined).map(_.get).toMap
           }
         }
-      } 
+        // Compute and validate the bitfields
+        bitfields <- {
+          def mapping(member: Ast.StructTypeMember) = {
+            val name = member.name
+            val t = structType.anonStruct.members(name)
+            member.bitfield match {
+              case Some(bitfieldNode) => {
+                val bitfieldSpec = bitfieldNode.data
+                val loc = Locations.get(bitfieldNode.id)
+                // Validate that the member type is an integer type
+                t match {
+                  case Type.PrimitiveInt(kind) => {
+                    val containerBits = t.asInstanceOf[Type.PrimitiveInt].bitWidth
+                    // Calculate total bits in bitfield spec
+                    val totalBits = bitfieldSpec.fields.map(_.data.size).sum
+                    // Validate that total bits don't exceed container size
+                    if (totalBits > containerBits) {
+                      Left(SemanticError.BitfieldSizeExceedsContainer(
+                        loc,
+                        name,
+                        totalBits,
+                        containerBits
+                      ))
+                    } else if (totalBits < 0) {
+                      Left(SemanticError.InvalidBitfieldSize(
+                        loc,
+                        name
+                      ))
+                    } else {
+                      // Validate individual field sizes
+                      val invalidFields = bitfieldSpec.fields.filter(_.data.size <= 0)
+                      if (invalidFields.nonEmpty) {
+                        Left(SemanticError.InvalidBitfieldFieldSize(
+                          Locations.get(invalidFields.head.id),
+                          invalidFields.head.data.name
+                        ))
+                      } else {
+                        Right(Some((name, bitfieldSpec)))
+                      }
+                    }
+                  }
+                  case _ => {
+                    Left(SemanticError.BitfieldOnNonInteger(loc, name, t.toString))
+                  }
+                }
+              }
+              case None => Right(None)
+            }
+          }
+          for (pairs <- Result.map(members, mapping)) yield {
+            pairs.filter(_.isDefined).map(_.get).toMap
+          }
+        }
+      }
       yield {
-        // Update the default value, sizes, and formats in S
+        // Update the default value, sizes, formats, and bitfields in S
         val structType1 = structType.copy(
           default = Some(default),
           sizes = sizes,
-          formats = formats
+          formats = formats,
+          bitfields = bitfields
         )
         // Update S in the type map
         a.assignType(node -> structType1)

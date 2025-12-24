@@ -127,7 +127,7 @@ class Including :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(const Included& x);
 
     //! Set member x

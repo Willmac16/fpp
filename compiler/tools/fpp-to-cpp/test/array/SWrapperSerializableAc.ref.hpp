@@ -128,7 +128,7 @@ class SWrapper :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(const SDefault& s);
 
     //! Set member s

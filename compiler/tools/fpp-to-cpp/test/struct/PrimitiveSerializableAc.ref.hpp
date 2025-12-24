@@ -249,7 +249,7 @@ class Primitive :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(
         const Type_of_mF32& mF32,
         F64 mF64,

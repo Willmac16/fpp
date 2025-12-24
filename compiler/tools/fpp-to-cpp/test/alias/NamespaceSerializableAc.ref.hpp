@@ -150,7 +150,7 @@ class Namespace :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(
         SimpleCType A,
         SimpleCType2 B,

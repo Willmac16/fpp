@@ -250,7 +250,7 @@ class Format :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(
         I32 m1,
         U32 m2,

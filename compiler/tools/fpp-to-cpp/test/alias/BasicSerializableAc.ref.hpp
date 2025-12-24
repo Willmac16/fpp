@@ -162,7 +162,7 @@ class Basic :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(
         TU32 A,
         TF32 B,

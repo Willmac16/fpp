@@ -152,7 +152,7 @@ class Enum :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(
         M::E::T e,
         const Type_of_eArr& eArr

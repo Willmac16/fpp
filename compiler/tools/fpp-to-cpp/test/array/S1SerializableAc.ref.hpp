@@ -218,7 +218,7 @@ namespace M {
       // Setter functions
       // ----------------------------------------------------------------------
 
-      //! Set all members
+      //! Set all non-bitfield members
       void set(
           F32 mF32,
           F64 mF64,

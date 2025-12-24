@@ -127,7 +127,7 @@ class S2 :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(const M::S1& s1);
 
     //! Set member s1

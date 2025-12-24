@@ -158,7 +158,7 @@ class Modules3 :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(
         const M::Modules2& x,
         const Type_of_arr& arr

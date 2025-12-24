@@ -154,7 +154,7 @@ namespace S {
       // Setter functions
       // ----------------------------------------------------------------------
 
-      //! Set all members
+      //! Set all non-bitfield members
       void set(
           const Type_of_mU32Array& mU32Array,
           F64 mF64

@@ -183,7 +183,7 @@ class StructWithAlias :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(
         AliasPrim1 x,
         const Fw::StringBase& y,

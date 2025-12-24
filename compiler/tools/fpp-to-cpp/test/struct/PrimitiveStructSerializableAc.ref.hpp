@@ -127,7 +127,7 @@ class PrimitiveStruct :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(const Primitive& s1);
 
     //! Set member s1

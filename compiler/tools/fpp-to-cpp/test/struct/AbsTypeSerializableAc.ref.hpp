@@ -127,7 +127,7 @@ class AbsType :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(const T& t);
 
     //! Set member t

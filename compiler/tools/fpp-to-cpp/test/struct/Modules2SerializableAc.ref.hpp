@@ -129,7 +129,7 @@ namespace M {
       // Setter functions
       // ----------------------------------------------------------------------
 
-      //! Set all members
+      //! Set all non-bitfield members
       void set(const M::Modules1& x);
 
       //! Set member x

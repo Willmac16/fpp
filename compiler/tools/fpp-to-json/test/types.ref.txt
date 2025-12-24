@@ -217,7 +217,8 @@
                                   "id" : 27
                                 }
                               },
-                              "format" : "None"
+                              "format" : "None",
+                              "bitfield" : "None"
                             },
                             "id" : 28
                           }
@@ -245,7 +246,8 @@
                                   "id" : 31
                                 }
                               },
-                              "format" : "None"
+                              "format" : "None",
+                              "bitfield" : "None"
                             },
                             "id" : 32
                           }
@@ -365,7 +367,8 @@
                                   "id" : 40
                                 }
                               },
-                              "format" : "None"
+                              "format" : "None",
+                              "bitfield" : "None"
                             },
                             "id" : 41
                           }
@@ -391,7 +394,8 @@
                                   "id" : 46
                                 }
                               },
-                              "format" : "None"
+                              "format" : "None",
+                              "bitfield" : "None"
                             },
                             "id" : 47
                           }
@@ -454,7 +458,8 @@
                                   "id" : 50
                                 }
                               },
-                              "format" : "None"
+                              "format" : "None",
+                              "bitfield" : "None"
                             },
                             "id" : 51
                           }
@@ -480,7 +485,8 @@
                                   "id" : 56
                                 }
                               },
-                              "format" : "None"
+                              "format" : "None",
+                              "bitfield" : "None"
                             },
                             "id" : 57
                           }
@@ -616,7 +622,8 @@
                                   "id" : 68
                                 }
                               },
-                              "format" : "None"
+                              "format" : "None",
+                              "bitfield" : "None"
                             },
                             "id" : 69
                           }
@@ -651,7 +658,8 @@
                                   "id" : 72
                                 }
                               },
-                              "format" : "None"
+                              "format" : "None",
+                              "bitfield" : "None"
                             },
                             "id" : 73
                           }
@@ -686,7 +694,8 @@
                                   "id" : 84
                                 }
                               },
-                              "format" : "None"
+                              "format" : "None",
+                              "bitfield" : "None"
                             },
                             "id" : 85
                           }
@@ -745,7 +754,8 @@
                                     "id" : 88
                                   }
                                 }
-                              }
+                              },
+                              "bitfield" : "None"
                             },
                             "id" : 89
                           }
@@ -782,7 +792,8 @@
                                     "id" : 97
                                   }
                                 }
-                              }
+                              },
+                              "bitfield" : "None"
                             },
                             "id" : 98
                           }
@@ -1880,6 +1891,9 @@
                 },
                 "formats" : {
                   
+                },
+                "bitfields" : {
+                  
                 }
               }
             }
@@ -2369,6 +2383,9 @@
                       },
                       "formats" : {
                         
+                      },
+                      "bitfields" : {
+                        
                       }
                     }
                   }
@@ -2413,6 +2430,9 @@
                       ]
                     ]
                   }
+                },
+                "bitfields" : {
+                  
                 }
               }
             }
@@ -2483,71 +2503,8 @@
                         },
                         "formats" : {
                           
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "Struct" : {
-                      "anonStruct" : {
-                        "members" : {
-                          "time" : {
-                            "Float" : {
-                              "value" : 0.0,
-                              "kind" : {
-                                "F32" : {
-                                  
-                                }
-                              }
-                            }
-                          },
-                          "value" : {
-                            "Float" : {
-                              "value" : 0.0,
-                              "kind" : {
-                                "F32" : {
-                                  
-                                }
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "t" : {
-                        "node" : {
-                          "astNodeId" : 99
                         },
-                        "anonStruct" : {
-                          "members" : {
-                            "time" : {
-                              "Primitive" : {
-                                "Float" : {
-                                  "kind" : {
-                                    "F32" : {
-                                      
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            "value" : {
-                              "Primitive" : {
-                                "Float" : {
-                                  "kind" : {
-                                    "F32" : {
-                                      
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        },
-                        "default" : "None",
-                        "sizes" : {
-                          
-                        },
-                        "formats" : {
+                        "bitfields" : {
                           
                         }
                       }
@@ -2615,6 +2572,9 @@
                         },
                         "formats" : {
                           
+                        },
+                        "bitfields" : {
+                          
                         }
                       }
                     }
@@ -2680,6 +2640,78 @@
                           
                         },
                         "formats" : {
+                          
+                        },
+                        "bitfields" : {
+                          
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Struct" : {
+                      "anonStruct" : {
+                        "members" : {
+                          "time" : {
+                            "Float" : {
+                              "value" : 0.0,
+                              "kind" : {
+                                "F32" : {
+                                  
+                                }
+                              }
+                            }
+                          },
+                          "value" : {
+                            "Float" : {
+                              "value" : 0.0,
+                              "kind" : {
+                                "F32" : {
+                                  
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "t" : {
+                        "node" : {
+                          "astNodeId" : 99
+                        },
+                        "anonStruct" : {
+                          "members" : {
+                            "time" : {
+                              "Primitive" : {
+                                "Float" : {
+                                  "kind" : {
+                                    "F32" : {
+                                      
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "value" : {
+                              "Primitive" : {
+                                "Float" : {
+                                  "kind" : {
+                                    "F32" : {
+                                      
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "default" : "None",
+                        "sizes" : {
+                          
+                        },
+                        "formats" : {
+                          
+                        },
+                        "bitfields" : {
                           
                         }
                       }
@@ -2788,6 +2820,9 @@
                             },
                             "formats" : {
                               
+                            },
+                            "bitfields" : {
+                              
                             }
                           }
                         }
@@ -2832,6 +2867,9 @@
                             ]
                           ]
                         }
+                      },
+                      "bitfields" : {
+                        
                       }
                     }
                   }
@@ -2920,6 +2958,9 @@
                 },
                 "formats" : {
                   
+                },
+                "bitfields" : {
+                  
                 }
               }
             }
@@ -2928,6 +2969,9 @@
             
           },
           "formats" : {
+            
+          },
+          "bitfields" : {
             
           }
         }
@@ -3081,6 +3125,9 @@
                 },
                 "formats" : {
                   
+                },
+                "bitfields" : {
+                  
                 }
               }
             }
@@ -3125,6 +3172,9 @@
                 ]
               ]
             }
+          },
+          "bitfields" : {
+            
           }
         }
       },
@@ -3169,6 +3219,9 @@
             
           },
           "formats" : {
+            
+          },
+          "bitfields" : {
             
           }
         }
@@ -3352,6 +3405,9 @@
                 },
                 "formats" : {
                   
+                },
+                "bitfields" : {
+                  
                 }
               }
             }
@@ -3360,6 +3416,9 @@
             
           },
           "formats" : {
+            
+          },
+          "bitfields" : {
             
           }
         }
@@ -3668,6 +3727,9 @@
                 },
                 "formats" : {
                   
+                },
+                "bitfields" : {
+                  
                 }
               }
             }
@@ -3676,6 +3738,9 @@
             
           },
           "formats" : {
+            
+          },
+          "bitfields" : {
             
           }
         }
@@ -4097,6 +4162,9 @@
                               },
                               "formats" : {
                                 
+                              },
+                              "bitfields" : {
+                                
                               }
                             }
                           }
@@ -4141,6 +4209,9 @@
                               ]
                             ]
                           }
+                        },
+                        "bitfields" : {
+                          
                         }
                       }
                     }
@@ -4211,71 +4282,8 @@
                                 },
                                 "formats" : {
                                   
-                                }
-                              }
-                            }
-                          },
-                          {
-                            "Struct" : {
-                              "anonStruct" : {
-                                "members" : {
-                                  "time" : {
-                                    "Float" : {
-                                      "value" : 0.0,
-                                      "kind" : {
-                                        "F32" : {
-                                          
-                                        }
-                                      }
-                                    }
-                                  },
-                                  "value" : {
-                                    "Float" : {
-                                      "value" : 0.0,
-                                      "kind" : {
-                                        "F32" : {
-                                          
-                                        }
-                                      }
-                                    }
-                                  }
-                                }
-                              },
-                              "t" : {
-                                "node" : {
-                                  "astNodeId" : 99
                                 },
-                                "anonStruct" : {
-                                  "members" : {
-                                    "time" : {
-                                      "Primitive" : {
-                                        "Float" : {
-                                          "kind" : {
-                                            "F32" : {
-                                              
-                                            }
-                                          }
-                                        }
-                                      }
-                                    },
-                                    "value" : {
-                                      "Primitive" : {
-                                        "Float" : {
-                                          "kind" : {
-                                            "F32" : {
-                                              
-                                            }
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                },
-                                "default" : "None",
-                                "sizes" : {
-                                  
-                                },
-                                "formats" : {
+                                "bitfields" : {
                                   
                                 }
                               }
@@ -4343,6 +4351,9 @@
                                 },
                                 "formats" : {
                                   
+                                },
+                                "bitfields" : {
+                                  
                                 }
                               }
                             }
@@ -4408,6 +4419,78 @@
                                   
                                 },
                                 "formats" : {
+                                  
+                                },
+                                "bitfields" : {
+                                  
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Struct" : {
+                              "anonStruct" : {
+                                "members" : {
+                                  "time" : {
+                                    "Float" : {
+                                      "value" : 0.0,
+                                      "kind" : {
+                                        "F32" : {
+                                          
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "value" : {
+                                    "Float" : {
+                                      "value" : 0.0,
+                                      "kind" : {
+                                        "F32" : {
+                                          
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "t" : {
+                                "node" : {
+                                  "astNodeId" : 99
+                                },
+                                "anonStruct" : {
+                                  "members" : {
+                                    "time" : {
+                                      "Primitive" : {
+                                        "Float" : {
+                                          "kind" : {
+                                            "F32" : {
+                                              
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "value" : {
+                                      "Primitive" : {
+                                        "Float" : {
+                                          "kind" : {
+                                            "F32" : {
+                                              
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "default" : "None",
+                                "sizes" : {
+                                  
+                                },
+                                "formats" : {
+                                  
+                                },
+                                "bitfields" : {
                                   
                                 }
                               }
@@ -4516,6 +4599,9 @@
                                     },
                                     "formats" : {
                                       
+                                    },
+                                    "bitfields" : {
+                                      
                                     }
                                   }
                                 }
@@ -4560,6 +4646,9 @@
                                     ]
                                   ]
                                 }
+                              },
+                              "bitfields" : {
+                                
                               }
                             }
                           }
@@ -4736,71 +4825,8 @@
                                 },
                                 "formats" : {
                                   
-                                }
-                              }
-                            }
-                          },
-                          {
-                            "Struct" : {
-                              "anonStruct" : {
-                                "members" : {
-                                  "time" : {
-                                    "Float" : {
-                                      "value" : 0.0,
-                                      "kind" : {
-                                        "F32" : {
-                                          
-                                        }
-                                      }
-                                    }
-                                  },
-                                  "value" : {
-                                    "Float" : {
-                                      "value" : 0.0,
-                                      "kind" : {
-                                        "F32" : {
-                                          
-                                        }
-                                      }
-                                    }
-                                  }
-                                }
-                              },
-                              "t" : {
-                                "node" : {
-                                  "astNodeId" : 99
                                 },
-                                "anonStruct" : {
-                                  "members" : {
-                                    "time" : {
-                                      "Primitive" : {
-                                        "Float" : {
-                                          "kind" : {
-                                            "F32" : {
-                                              
-                                            }
-                                          }
-                                        }
-                                      }
-                                    },
-                                    "value" : {
-                                      "Primitive" : {
-                                        "Float" : {
-                                          "kind" : {
-                                            "F32" : {
-                                              
-                                            }
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                },
-                                "default" : "None",
-                                "sizes" : {
-                                  
-                                },
-                                "formats" : {
+                                "bitfields" : {
                                   
                                 }
                               }
@@ -4868,6 +4894,9 @@
                                 },
                                 "formats" : {
                                   
+                                },
+                                "bitfields" : {
+                                  
                                 }
                               }
                             }
@@ -4933,6 +4962,78 @@
                                   
                                 },
                                 "formats" : {
+                                  
+                                },
+                                "bitfields" : {
+                                  
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Struct" : {
+                              "anonStruct" : {
+                                "members" : {
+                                  "time" : {
+                                    "Float" : {
+                                      "value" : 0.0,
+                                      "kind" : {
+                                        "F32" : {
+                                          
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "value" : {
+                                    "Float" : {
+                                      "value" : 0.0,
+                                      "kind" : {
+                                        "F32" : {
+                                          
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "t" : {
+                                "node" : {
+                                  "astNodeId" : 99
+                                },
+                                "anonStruct" : {
+                                  "members" : {
+                                    "time" : {
+                                      "Primitive" : {
+                                        "Float" : {
+                                          "kind" : {
+                                            "F32" : {
+                                              
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "value" : {
+                                      "Primitive" : {
+                                        "Float" : {
+                                          "kind" : {
+                                            "F32" : {
+                                              
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "default" : "None",
+                                "sizes" : {
+                                  
+                                },
+                                "formats" : {
+                                  
+                                },
+                                "bitfields" : {
                                   
                                 }
                               }
@@ -5041,6 +5142,9 @@
                                     },
                                     "formats" : {
                                       
+                                    },
+                                    "bitfields" : {
+                                      
                                     }
                                   }
                                 }
@@ -5085,6 +5189,9 @@
                                     ]
                                   ]
                                 }
+                              },
+                              "bitfields" : {
+                                
                               }
                             }
                           }
@@ -5353,6 +5460,9 @@
                                     },
                                     "formats" : {
                                       
+                                    },
+                                    "bitfields" : {
+                                      
                                     }
                                   }
                                 }
@@ -5397,6 +5507,9 @@
                                     ]
                                   ]
                                 }
+                              },
+                              "bitfields" : {
+                                
                               }
                             }
                           }
@@ -5467,71 +5580,8 @@
                                       },
                                       "formats" : {
                                         
-                                      }
-                                    }
-                                  }
-                                },
-                                {
-                                  "Struct" : {
-                                    "anonStruct" : {
-                                      "members" : {
-                                        "time" : {
-                                          "Float" : {
-                                            "value" : 0.0,
-                                            "kind" : {
-                                              "F32" : {
-                                                
-                                              }
-                                            }
-                                          }
-                                        },
-                                        "value" : {
-                                          "Float" : {
-                                            "value" : 0.0,
-                                            "kind" : {
-                                              "F32" : {
-                                                
-                                              }
-                                            }
-                                          }
-                                        }
-                                      }
-                                    },
-                                    "t" : {
-                                      "node" : {
-                                        "astNodeId" : 99
                                       },
-                                      "anonStruct" : {
-                                        "members" : {
-                                          "time" : {
-                                            "Primitive" : {
-                                              "Float" : {
-                                                "kind" : {
-                                                  "F32" : {
-                                                    
-                                                  }
-                                                }
-                                              }
-                                            }
-                                          },
-                                          "value" : {
-                                            "Primitive" : {
-                                              "Float" : {
-                                                "kind" : {
-                                                  "F32" : {
-                                                    
-                                                  }
-                                                }
-                                              }
-                                            }
-                                          }
-                                        }
-                                      },
-                                      "default" : "None",
-                                      "sizes" : {
-                                        
-                                      },
-                                      "formats" : {
+                                      "bitfields" : {
                                         
                                       }
                                     }
@@ -5599,6 +5649,9 @@
                                       },
                                       "formats" : {
                                         
+                                      },
+                                      "bitfields" : {
+                                        
                                       }
                                     }
                                   }
@@ -5664,6 +5717,78 @@
                                         
                                       },
                                       "formats" : {
+                                        
+                                      },
+                                      "bitfields" : {
+                                        
+                                      }
+                                    }
+                                  }
+                                },
+                                {
+                                  "Struct" : {
+                                    "anonStruct" : {
+                                      "members" : {
+                                        "time" : {
+                                          "Float" : {
+                                            "value" : 0.0,
+                                            "kind" : {
+                                              "F32" : {
+                                                
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "value" : {
+                                          "Float" : {
+                                            "value" : 0.0,
+                                            "kind" : {
+                                              "F32" : {
+                                                
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "t" : {
+                                      "node" : {
+                                        "astNodeId" : 99
+                                      },
+                                      "anonStruct" : {
+                                        "members" : {
+                                          "time" : {
+                                            "Primitive" : {
+                                              "Float" : {
+                                                "kind" : {
+                                                  "F32" : {
+                                                    
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "value" : {
+                                            "Primitive" : {
+                                              "Float" : {
+                                                "kind" : {
+                                                  "F32" : {
+                                                    
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "default" : "None",
+                                      "sizes" : {
+                                        
+                                      },
+                                      "formats" : {
+                                        
+                                      },
+                                      "bitfields" : {
                                         
                                       }
                                     }
@@ -5772,6 +5897,9 @@
                                           },
                                           "formats" : {
                                             
+                                          },
+                                          "bitfields" : {
+                                            
                                           }
                                         }
                                       }
@@ -5816,6 +5944,9 @@
                                           ]
                                         ]
                                       }
+                                    },
+                                    "bitfields" : {
+                                      
                                     }
                                   }
                                 }
@@ -5836,6 +5967,9 @@
                 },
                 "formats" : {
                   
+                },
+                "bitfields" : {
+                  
                 }
               }
             }
@@ -5844,6 +5978,9 @@
             
           },
           "formats" : {
+            
+          },
+          "bitfields" : {
             
           }
         }
@@ -6234,6 +6371,12 @@
     },
     "dictionarySymbolSet" : [
       {
+        "Struct" : {
+          "nodeId" : 86,
+          "unqualifiedName" : "SignalInfo"
+        }
+      },
+      {
         "Constant" : {
           "nodeId" : 1,
           "unqualifiedName" : "numElements"
@@ -6249,12 +6392,6 @@
         "AliasType" : {
           "nodeId" : 117,
           "unqualifiedName" : "Alias1"
-        }
-      },
-      {
-        "Struct" : {
-          "nodeId" : 86,
-          "unqualifiedName" : "SignalInfo"
         }
       },
       {

@@ -121,7 +121,7 @@ class S :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(U32 x);
 
     //! Set member x

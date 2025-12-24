@@ -157,7 +157,7 @@ class StringArray :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(
         const Fw::StringBase& s1,
         const Type_of_s2& s2

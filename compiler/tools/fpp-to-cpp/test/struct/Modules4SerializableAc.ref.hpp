@@ -161,7 +161,7 @@ class Modules4 :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(
         const Type_of_arr1& arr1,
         const Type_of_arr2& arr2

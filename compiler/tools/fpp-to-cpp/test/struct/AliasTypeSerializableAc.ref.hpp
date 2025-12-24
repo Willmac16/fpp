@@ -169,7 +169,7 @@ class AliasType :
     // Setter functions
     // ----------------------------------------------------------------------
 
-    //! Set all members
+    //! Set all non-bitfield members
     void set(
         U16Alias x,
         const TAlias& y,

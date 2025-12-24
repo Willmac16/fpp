@@ -804,12 +804,24 @@ object Ast {
   /** Struct member */
   final case class StructMember(name: Ident, value: AstNode[Expr])
 
+  /** Bitfield field specification */
+  final case class BitfieldField(
+    name: Ident,
+    size: Int
+  )
+
+  /** Bitfield specification */
+  final case class BitfieldSpec(
+    fields: List[AstNode[BitfieldField]]
+  )
+
   /** Struct type member */
   final case class StructTypeMember(
     name: Ident,
     size: Option[AstNode[Expr]],
     typeName: AstNode[TypeName],
-    format: Option[AstNode[String]]
+    format: Option[AstNode[String]],
+    bitfield: Option[AstNode[BitfieldSpec]]
   )
 
   /** Telemetry channel identifier */

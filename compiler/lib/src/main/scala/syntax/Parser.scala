@@ -909,11 +909,26 @@ object Parser extends Parsers {
   private def stateMembers: Parser[List[Ast.StateMember]] =
     annotatedElementSequence(stateMemberNode, semi, Ast.StateMember(_))
 
+  private def bitfieldField: Parser[Ast.BitfieldField] = {
+    ident ~! (colon ~>! literalInt) ^^ { case name ~ size =>
+      Ast.BitfieldField(name, size.toInt)
+    }
+  }
+
+  private def bitfieldSpec: Parser[Ast.BitfieldSpec] = {
+    bitfield ~>! lbrace ~>! elementSequence(
+      node(bitfieldField),
+      comma
+    ) <~! rbrace ^^ { fields =>
+      Ast.BitfieldSpec(fields)
+    }
+  }
+
   def structTypeMember: Parser[Ast.StructTypeMember] = {
     ident ~! (colon ~>! opt(index)) ~! node(typeName) ~! opt(
       format ~>! node(literalString)
-    ) ^^ { case name ~ size ~ typeName ~ format =>
-      Ast.StructTypeMember(name, size, typeName, format)
+    ) ~! opt(node(bitfieldSpec)) ^^ { case name ~ size ~ typeName ~ format ~ bitfield =>
+      Ast.StructTypeMember(name, size, typeName, format, bitfield)
     }
   }
 
@@ -1091,6 +1106,8 @@ object Parser extends Parsers {
   private def at = accept("at", { case t: Token.AT => t })
 
   private def base = accept("base", { case t: Token.BASE => t })
+
+  private def bitfield = accept("bitfield", { case t: Token.BITFIELD => t })
 
   private def block = accept("block", { case t: Token.BLOCK => t })
 

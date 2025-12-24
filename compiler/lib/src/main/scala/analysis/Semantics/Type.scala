@@ -271,6 +271,8 @@ object Type {
     sizes: Struct.Sizes = Map(),
     /** The member formats */
     formats: Struct.Formats = Map(),
+    /** The member bitfield specifications */
+    bitfields: Struct.Bitfields = Map(),
   ) extends Type {
     override def getDefaultValue: Option[Value.Struct] = default
     override def getDefNodeId = Some(node._2.id)
@@ -288,6 +290,8 @@ object Type {
     type Formats = Map[Name.Unqualified, Format]
 
     type Sizes = Map[Name.Unqualified, scala.Int]
+
+    type Bitfields = Map[Name.Unqualified, Ast.BitfieldSpec]
 
     /** Resolve a member map, generating a new member map */
     def resolveMembers (resolver: Member => Option[Member]) (members: Members): 

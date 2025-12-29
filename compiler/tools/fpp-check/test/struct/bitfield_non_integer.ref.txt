@@ -1,0 +1,6 @@
+fpp-check
+[ local path prefix ]/compiler/tools/fpp-check/test/struct/bitfield_non_integer.fpp:1.19
+struct S { x: F32 bitfield { a: 1 } }
+                  ^
+error: bitfield specifier on non-integer type
+note: member 'x' has type F32, but bitfields can only be applied to integer types (U8, U16, U32, U64, I8, I16, I32, I64)

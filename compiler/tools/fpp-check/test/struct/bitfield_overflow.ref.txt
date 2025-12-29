@@ -1,0 +1,6 @@
+fpp-check
+[ local path prefix ]/compiler/tools/fpp-check/test/struct/bitfield_overflow.fpp:1.18
+struct S { x: U8 bitfield { a: 5, b: 4 } }
+                 ^
+error: bitfield size exceeds container size
+note: member 'x' has bitfield specification totaling 9 bits, but container type only has 8 bits

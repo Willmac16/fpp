@@ -1,0 +1,6 @@
+fpp-check
+[ local path prefix ]/compiler/tools/fpp-check/test/struct/bitfield_invalid_field_size.fpp:1.29
+struct S { x: U8 bitfield { a: 0 } }
+                            ^
+error: invalid bitfield field size
+note: field 'a' must have size greater than zero

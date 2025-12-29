@@ -182,11 +182,6 @@ object FinalizeTypeDefs
                         totalBits,
                         containerBits
                       ))
-                    } else if (totalBits < 0) {
-                      Left(SemanticError.InvalidBitfieldSize(
-                        loc,
-                        name
-                      ))
                     } else {
                       // Validate individual field sizes
                       val invalidFields = bitfieldSpec.fields.filter(_.data.size <= 0)

@@ -493,7 +493,8 @@ case class StructCppWriter(
       val memberType = typeMembers(n).asInstanceOf[Type.PrimitiveInt]
       val containerType = typeCppWriter.write(memberType)
       var bitOffset = 0
-      val packLines = spec.fields.flatMap { fieldNode =>
+      val packLines = lines(s"$containerType packed_$n = 0;")
+      packLines ++ spec.fields.flatMap { fieldNode =>
         val field = fieldNode.data
         val fieldName = field.name
         val fieldSize = field.size
@@ -502,7 +503,6 @@ case class StructCppWriter(
         bitOffset += fieldSize
         List(Line.blank, indentIn(line(lineStr)))
       }
-      lines(s"$containerType packed_$n = 0;") ++ packLines
     }
 
     def writeBitfieldUnpack(n: String, spec: Ast.BitfieldSpec): List[Line] = {

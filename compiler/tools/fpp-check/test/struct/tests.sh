@@ -1,4 +1,8 @@
 tests="
+bitfield_invalid_field_size
+bitfield_non_integer
+bitfield_ok
+bitfield_overflow
 default_error
 default_ok
 dictionary_not_displayable

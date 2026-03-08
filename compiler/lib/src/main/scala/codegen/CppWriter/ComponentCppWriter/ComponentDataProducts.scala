@@ -587,6 +587,171 @@ case class ComponentDataProducts (
         else singleRecordSerializeFn(name, t)
       })
 
+    private def singleRecordDeserializeFn(name: String, t: Type) = {
+      // Get the type name
+      val typeName = TypeCppWriter.getName(s, t)
+      // Get the parameter type
+      // For strings this is a reference to Fw::StringBase
+      // For primitive types it is a reference to the type name
+      // For other types it is a reference to the type name
+      val paramType = t match {
+        case Type.String(_) => "Fw::StringBase&"
+        case _ =>
+          if s.isPrimitive(t, typeName)
+          then s"$typeName&"
+          else s"$typeName&"
+      }
+      // Get the expression that does the deserialization
+      val deserialExpr = t.getUnderlyingType match {
+        case ts: Type.String =>
+          "elt.deserializeFrom(this->m_dataBuffer)"
+        case _ =>
+          if s.isPrimitive(t, typeName)
+          then "this->m_dataBuffer.deserializeTo(elt)"
+          else "elt.deserializeFrom(this->m_dataBuffer)"
+      }
+      // Construct the function body
+      val body = lines(
+        s"""|FwDpIdType id;
+            |Fw::SerializeStatus status = this->m_dataBuffer.deserializeTo(id);
+            |if (status != Fw::FW_SERIALIZE_OK) {
+            |  return status;
+            |}
+            |FW_ASSERT(
+            |  id == this->m_baseId + RecordId::$name,
+            |  static_cast<FwAssertArgType>(id),
+            |  static_cast<FwAssertArgType>(this->m_baseId + RecordId::$name)
+            |);
+            |status = $deserialExpr;
+            |return status;"""
+      )
+      // Construct the function class member
+      functionClassMember(
+        Some(s"""|Deserialize a $name record from the packet buffer
+                 |\\return The serialize status"""),
+        s"deserializeRecord_${name}",
+        List(
+          CppDoc.Function.Param(
+            CppDoc.Type(paramType),
+            "elt",
+            Some("The element (output)")
+          )
+        ),
+        CppDoc.Type("Fw::SerializeStatus"),
+        body
+      )
+    }
+
+    private def arrayRecordDeserializeFn(name: String, t: Type) = {
+      // Get the type name and parameter type
+      val typeName = TypeCppWriter.getName(s, t)
+      val paramType = t.getUnderlyingType match {
+        case Type.String(_) => "Fw::StringBase**"
+        case _ => s"${typeName}*"
+      }
+      // Generate the code for deserializing the elements
+      val deserializeElts = (t.getUnderlyingType match {
+        // Optimize the U8 case
+        case Type.U8 =>
+          """|  FwSizeType length = size;
+             |  status = this->m_dataBuffer.deserializeTo(array, length, Fw::Serialization::OMIT_LENGTH);
+             |  if (status != Fw::FW_SERIALIZE_OK) {
+             |    return status;
+             |  }"""
+        // Handle the string case
+        case ts: Type.String =>
+          s"""|  for (FwSizeType i = 0; i < size; i++) {
+              |    Fw::StringBase *const sbPtr = array[i];
+              |    FW_ASSERT(sbPtr != nullptr);
+              |    status = sbPtr->deserializeFrom(this->m_dataBuffer);
+              |    if (status != Fw::FW_SERIALIZE_OK) {
+              |      return status;
+              |    }
+              |  }"""
+        // Handle the general case
+        case _ =>
+          if s.isPrimitive(t, typeName)
+          then
+            """|  for (FwSizeType i = 0; i < size; i++) {
+               |    status = this->m_dataBuffer.deserializeTo(array[i]);
+               |    if (status != Fw::FW_SERIALIZE_OK) {
+               |      return status;
+               |    }
+               |  }"""
+          else
+            """|  for (FwSizeType i = 0; i < size; i++) {
+               |    status = array[i].deserializeFrom(this->m_dataBuffer);
+               |    if (status != Fw::FW_SERIALIZE_OK) {
+               |      return status;
+               |    }
+               |  }"""
+      }).stripMargin
+      // Construct the function body
+      val body = lines(
+        s"""|FW_ASSERT(array != nullptr);
+            |// Deserialize the record id
+            |FwDpIdType id;
+            |Fw::SerializeStatus status = this->m_dataBuffer.deserializeTo(id);
+            |if (status != Fw::FW_SERIALIZE_OK) {
+            |  return status;
+            |}
+            |FW_ASSERT(
+            |  id == this->m_baseId + RecordId::$name,
+            |  static_cast<FwAssertArgType>(id),
+            |  static_cast<FwAssertArgType>(this->m_baseId + RecordId::$name)
+            |);
+            |// Deserialize the array size
+            |status = this->m_dataBuffer.deserializeSize(size);
+            |if (status != Fw::FW_SERIALIZE_OK) {
+            |  return status;
+            |}
+            |if (size > maxSize) {
+            |  return Fw::FW_DESERIALIZE_SIZE_MISMATCH;
+            |}
+            |// Deserialize the elements
+            |$deserializeElts
+            |return status;"""
+      )
+      // Construct the function class member
+      functionClassMember(
+        Some(s"""|Deserialize a $name record from the packet buffer
+                 |\\return The serialize status"""),
+        s"deserializeRecord_${name}",
+        List(
+          CppDoc.Function.Param(
+            CppDoc.Type(paramType),
+            "array",
+            Some(
+              t match {
+                case Type.String(_) => "An array of pointers to StringBase objects (output)"
+                case _ => s"An array of $typeName elements (output)"
+              }
+            )
+          ),
+          CppDoc.Function.Param(
+            CppDoc.Type("FwSizeType&"),
+            "size",
+            Some("The array size (output)")
+          ),
+          CppDoc.Function.Param(
+            CppDoc.Type("FwSizeType"),
+            "maxSize",
+            Some("The maximum array size")
+          )
+        ),
+        CppDoc.Type("Fw::SerializeStatus"),
+        body
+      )
+    }
+
+    private def getDeserializeFunctionMembers =
+      recordsByName.map((id, record) => {
+        val name = record.getName
+        val t = record.recordType
+        if record.isArray then arrayRecordDeserializeFn(name, t)
+        else singleRecordDeserializeFn(name, t)
+      })
+
     private val getAccessFunctionsMember = linesClassMember(
       lines(
         raw"""|
@@ -598,7 +763,7 @@ case class ComponentDataProducts (
 
     private def getFunctionMembers =
       linesClassMember(CppDocHppWriter.writeAccessTag("public")) ::
-      (getSerializeFunctionMembers :+ getAccessFunctionsMember)
+      (getSerializeFunctionMembers ++ getDeserializeFunctionMembers :+ getAccessFunctionsMember)
 
     private def getVariableMembers = List(
       linesClassMember(

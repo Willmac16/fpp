@@ -291,6 +291,206 @@ Fw::SerializeStatus ActiveGuardedProductsComponentBase::DpContainer ::
   return status;
 }
 
+Fw::SerializeStatus ActiveGuardedProductsComponentBase::DpContainer ::
+  deserializeRecord_DataArrayRecord(
+      ActiveGuardedProducts_Data* array,
+      FwSizeType& size,
+      FwSizeType maxSize
+  )
+{
+  FW_ASSERT(array != nullptr);
+  // Deserialize the record id
+  FwDpIdType id;
+  Fw::SerializeStatus status = this->m_dataBuffer.deserializeTo(id);
+  if (status != Fw::FW_SERIALIZE_OK) {
+    return status;
+  }
+  FW_ASSERT(
+    id == this->m_baseId + RecordId::DataArrayRecord,
+    static_cast<FwAssertArgType>(id),
+    static_cast<FwAssertArgType>(this->m_baseId + RecordId::DataArrayRecord)
+  );
+  // Deserialize the array size
+  status = this->m_dataBuffer.deserializeSize(size);
+  if (status != Fw::FW_SERIALIZE_OK) {
+    return status;
+  }
+  if (size > maxSize) {
+    return Fw::FW_DESERIALIZE_SIZE_MISMATCH;
+  }
+  // Deserialize the elements
+    for (FwSizeType i = 0; i < size; i++) {
+      status = array[i].deserializeFrom(this->m_dataBuffer);
+      if (status != Fw::FW_SERIALIZE_OK) {
+        return status;
+      }
+    }
+  return status;
+}
+
+Fw::SerializeStatus ActiveGuardedProductsComponentBase::DpContainer ::
+  deserializeRecord_DataRecord(ActiveGuardedProducts_Data& elt)
+{
+  FwDpIdType id;
+  Fw::SerializeStatus status = this->m_dataBuffer.deserializeTo(id);
+  if (status != Fw::FW_SERIALIZE_OK) {
+    return status;
+  }
+  FW_ASSERT(
+    id == this->m_baseId + RecordId::DataRecord,
+    static_cast<FwAssertArgType>(id),
+    static_cast<FwAssertArgType>(this->m_baseId + RecordId::DataRecord)
+  );
+  status = elt.deserializeFrom(this->m_dataBuffer);
+  return status;
+}
+
+Fw::SerializeStatus ActiveGuardedProductsComponentBase::DpContainer ::
+  deserializeRecord_StringArrayRecord(
+      Fw::StringBase** array,
+      FwSizeType& size,
+      FwSizeType maxSize
+  )
+{
+  FW_ASSERT(array != nullptr);
+  // Deserialize the record id
+  FwDpIdType id;
+  Fw::SerializeStatus status = this->m_dataBuffer.deserializeTo(id);
+  if (status != Fw::FW_SERIALIZE_OK) {
+    return status;
+  }
+  FW_ASSERT(
+    id == this->m_baseId + RecordId::StringArrayRecord,
+    static_cast<FwAssertArgType>(id),
+    static_cast<FwAssertArgType>(this->m_baseId + RecordId::StringArrayRecord)
+  );
+  // Deserialize the array size
+  status = this->m_dataBuffer.deserializeSize(size);
+  if (status != Fw::FW_SERIALIZE_OK) {
+    return status;
+  }
+  if (size > maxSize) {
+    return Fw::FW_DESERIALIZE_SIZE_MISMATCH;
+  }
+  // Deserialize the elements
+    for (FwSizeType i = 0; i < size; i++) {
+      Fw::StringBase *const sbPtr = array[i];
+      FW_ASSERT(sbPtr != nullptr);
+      status = sbPtr->deserializeFrom(this->m_dataBuffer);
+      if (status != Fw::FW_SERIALIZE_OK) {
+        return status;
+      }
+    }
+  return status;
+}
+
+Fw::SerializeStatus ActiveGuardedProductsComponentBase::DpContainer ::
+  deserializeRecord_StringRecord(Fw::StringBase& elt)
+{
+  FwDpIdType id;
+  Fw::SerializeStatus status = this->m_dataBuffer.deserializeTo(id);
+  if (status != Fw::FW_SERIALIZE_OK) {
+    return status;
+  }
+  FW_ASSERT(
+    id == this->m_baseId + RecordId::StringRecord,
+    static_cast<FwAssertArgType>(id),
+    static_cast<FwAssertArgType>(this->m_baseId + RecordId::StringRecord)
+  );
+  status = elt.deserializeFrom(this->m_dataBuffer);
+  return status;
+}
+
+Fw::SerializeStatus ActiveGuardedProductsComponentBase::DpContainer ::
+  deserializeRecord_U32ArrayRecord(
+      U32* array,
+      FwSizeType& size,
+      FwSizeType maxSize
+  )
+{
+  FW_ASSERT(array != nullptr);
+  // Deserialize the record id
+  FwDpIdType id;
+  Fw::SerializeStatus status = this->m_dataBuffer.deserializeTo(id);
+  if (status != Fw::FW_SERIALIZE_OK) {
+    return status;
+  }
+  FW_ASSERT(
+    id == this->m_baseId + RecordId::U32ArrayRecord,
+    static_cast<FwAssertArgType>(id),
+    static_cast<FwAssertArgType>(this->m_baseId + RecordId::U32ArrayRecord)
+  );
+  // Deserialize the array size
+  status = this->m_dataBuffer.deserializeSize(size);
+  if (status != Fw::FW_SERIALIZE_OK) {
+    return status;
+  }
+  if (size > maxSize) {
+    return Fw::FW_DESERIALIZE_SIZE_MISMATCH;
+  }
+  // Deserialize the elements
+    for (FwSizeType i = 0; i < size; i++) {
+      status = this->m_dataBuffer.deserializeTo(array[i]);
+      if (status != Fw::FW_SERIALIZE_OK) {
+        return status;
+      }
+    }
+  return status;
+}
+
+Fw::SerializeStatus ActiveGuardedProductsComponentBase::DpContainer ::
+  deserializeRecord_U32Record(U32& elt)
+{
+  FwDpIdType id;
+  Fw::SerializeStatus status = this->m_dataBuffer.deserializeTo(id);
+  if (status != Fw::FW_SERIALIZE_OK) {
+    return status;
+  }
+  FW_ASSERT(
+    id == this->m_baseId + RecordId::U32Record,
+    static_cast<FwAssertArgType>(id),
+    static_cast<FwAssertArgType>(this->m_baseId + RecordId::U32Record)
+  );
+  status = this->m_dataBuffer.deserializeTo(elt);
+  return status;
+}
+
+Fw::SerializeStatus ActiveGuardedProductsComponentBase::DpContainer ::
+  deserializeRecord_U8ArrayRecord(
+      U8* array,
+      FwSizeType& size,
+      FwSizeType maxSize
+  )
+{
+  FW_ASSERT(array != nullptr);
+  // Deserialize the record id
+  FwDpIdType id;
+  Fw::SerializeStatus status = this->m_dataBuffer.deserializeTo(id);
+  if (status != Fw::FW_SERIALIZE_OK) {
+    return status;
+  }
+  FW_ASSERT(
+    id == this->m_baseId + RecordId::U8ArrayRecord,
+    static_cast<FwAssertArgType>(id),
+    static_cast<FwAssertArgType>(this->m_baseId + RecordId::U8ArrayRecord)
+  );
+  // Deserialize the array size
+  status = this->m_dataBuffer.deserializeSize(size);
+  if (status != Fw::FW_SERIALIZE_OK) {
+    return status;
+  }
+  if (size > maxSize) {
+    return Fw::FW_DESERIALIZE_SIZE_MISMATCH;
+  }
+  // Deserialize the elements
+    FwSizeType length = size;
+    status = this->m_dataBuffer.deserializeTo(array, length, Fw::Serialization::OMIT_LENGTH);
+    if (status != Fw::FW_SERIALIZE_OK) {
+      return status;
+    }
+  return status;
+}
+
 // ----------------------------------------------------------------------
 // Component initialization
 // ----------------------------------------------------------------------

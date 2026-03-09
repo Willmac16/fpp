@@ -243,6 +243,56 @@ class ActiveSyncProductsComponentBase :
             FwSizeType size //!< The array size
         );
 
+        //! Deserialize a DataArrayRecord record from the packet buffer
+        //! \return The serialize status
+        Fw::SerializeStatus deserializeRecord_DataArrayRecord(
+            ActiveSyncProducts_Data* array, //!< An array of ActiveSyncProducts_Data elements (output)
+            FwSizeType& size, //!< The array size (output)
+            FwSizeType maxSize //!< The maximum array size
+        );
+
+        //! Deserialize a DataRecord record from the packet buffer
+        //! \return The serialize status
+        Fw::SerializeStatus deserializeRecord_DataRecord(
+            ActiveSyncProducts_Data& elt //!< The element (output)
+        );
+
+        //! Deserialize a StringArrayRecord record from the packet buffer
+        //! \return The serialize status
+        Fw::SerializeStatus deserializeRecord_StringArrayRecord(
+            Fw::StringBase** array, //!< An array of pointers to StringBase objects (output)
+            FwSizeType& size, //!< The array size (output)
+            FwSizeType maxSize //!< The maximum array size
+        );
+
+        //! Deserialize a StringRecord record from the packet buffer
+        //! \return The serialize status
+        Fw::SerializeStatus deserializeRecord_StringRecord(
+            Fw::StringBase& elt //!< The element (output)
+        );
+
+        //! Deserialize a U32ArrayRecord record from the packet buffer
+        //! \return The serialize status
+        Fw::SerializeStatus deserializeRecord_U32ArrayRecord(
+            U32* array, //!< An array of U32 elements (output)
+            FwSizeType& size, //!< The array size (output)
+            FwSizeType maxSize //!< The maximum array size
+        );
+
+        //! Deserialize a U32Record record from the packet buffer
+        //! \return The serialize status
+        Fw::SerializeStatus deserializeRecord_U32Record(
+            U32& elt //!< The element (output)
+        );
+
+        //! Deserialize a U8ArrayRecord record from the packet buffer
+        //! \return The serialize status
+        Fw::SerializeStatus deserializeRecord_U8ArrayRecord(
+            U8* array, //!< An array of U8 elements (output)
+            FwSizeType& size, //!< The array size (output)
+            FwSizeType maxSize //!< The maximum array size
+        );
+
         FwDpIdType getBaseId() const { return this->m_baseId; }
 
         void setBaseId(FwDpIdType baseId) { this->m_baseId = baseId; }

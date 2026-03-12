@@ -2422,7 +2422,7 @@ passive component BasicDataProducts {
 ----
 
 The FPP back end uses this specification to generate code for requesting
-buffers to hold containers and for serializing records into containers.
+buffers to hold containers and for serializing and deserializing records.
 See the
 https://fprime.jpl.nasa.gov/devel/docs/user-manual/framework/data-products/[F
 Prime design documentation] for the details.
@@ -2581,6 +2581,63 @@ In this example, a record with name `DataArrayRecord` holds
 an array of elements of type `Data`.
 The number of elements is unspecified in the model;
 it is provided when the record is serialized into a container.
+
+==== Serializing and Deserializing Records
+
+For each component _C_ that defines records, FPP generates an inner class
+`DpContainer` nested inside the auto-coded base class of _C_.
+`DpContainer` wraps an `Fw::DpContainer` object and provides
+type-safe member functions for serializing and deserializing each record.
+
+===== Serializing Records
+
+For each record _R_ of type _T_ in component _C_, FPP generates a member
+function `serializeRecord_`_R_ in `DpContainer`.
+
+*Single-value records* (`product record` _R_`: `_T_):
+----
+Fw::SerializeStatus serializeRecord_R(const T& elt);
+----
+For primitive types (e.g., `U32`, `F64`), the argument is passed by value.
+The function serializes the record ID followed by the element into the
+container's data buffer.
+
+*Array records* (`product record` _R_`: `_T_ `array`):
+----
+Fw::SerializeStatus serializeRecord_R(const T* array, FwSizeType size);
+----
+For string types, the array parameter has type `const Fw::StringBase**`
+(an array of pointers to `StringBase` objects).
+The function serializes the record ID, the array size, and each element
+in order into the data buffer.
+
+===== Deserializing Records
+
+For each record _R_ of type _T_ in component _C_, FPP generates a
+corresponding member function `deserializeRecord_`_R_ in `DpContainer`.
+These functions are the mirror of the serialize functions and are used to
+read records back from a serialized container (for example, when reloading
+persistent state).
+
+*Single-value records* (`product record` _R_`: `_T_):
+----
+Fw::SerializeStatus deserializeRecord_R(T& elt);
+----
+The `elt` parameter is an output parameter.
+The function reads and validates the record ID from the data buffer,
+then deserializes the element into `elt`.
+
+*Array records* (`product record` _R_`: `_T_ `array`):
+----
+Fw::SerializeStatus deserializeRecord_R(T* array, FwSizeType& size, FwSizeType maxSize);
+----
+For string types, the array parameter has type `Fw::StringBase**`.
+The `size` parameter is an output parameter that receives the number of
+elements read.
+The `maxSize` parameter provides a caller-supplied upper bound; if the
+serialized size exceeds `maxSize`, the function returns an error status.
+The function reads and validates the record ID, deserializes the array
+size, and then deserializes each element in order.
 
 === State Machine Instances
 

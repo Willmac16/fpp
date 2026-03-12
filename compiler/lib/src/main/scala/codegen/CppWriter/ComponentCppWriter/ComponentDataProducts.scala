@@ -592,14 +592,10 @@ case class ComponentDataProducts (
       val typeName = TypeCppWriter.getName(s, t)
       // Get the parameter type
       // For strings this is a reference to Fw::StringBase
-      // For primitive types it is a reference to the type name
-      // For other types it is a reference to the type name
+      // For all other types it is a reference to the type name
       val paramType = t match {
         case Type.String(_) => "Fw::StringBase&"
-        case _ =>
-          if s.isPrimitive(t, typeName)
-          then s"$typeName&"
-          else s"$typeName&"
+        case _              => s"$typeName&"
       }
       // Get the expression that does the deserialization
       val deserialExpr = t.getUnderlyingType match {

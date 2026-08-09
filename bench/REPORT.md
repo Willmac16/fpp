@@ -3,28 +3,37 @@
 ## Headline
 
 Moving off the 2022-era GraalVM cuts the fpp side of an F´ build **roughly in
-half**, and the cheapest version of that change is **one functional line**.
+half** — **but only with Oracle GraalVM.** The equivalent open-source GraalVM
+Community build delivers about a quarter of that.
 
 Replaying every fpp invocation a Ref build performs (307 calls, no C++ compiled):
 
-| Toolchain | Whole fpp workflow | Δ vs baseline | Functional LOC to adopt |
-|---|---:|---:|---:|
-| baseline — GraalVM CE 22.3.0 / JDK 11 | 37.494 s | — | 0 |
-| shipping — `fprime-fpp` 3.3.0a15 wheel | 34.965 s | −6.7% | n/a |
-| **JDK 17** — Oracle GraalVM 17.0.12 | **18.958 s** | **−49.4%** | **1** |
-| JDK 21 — Oracle GraalVM 21.0.12 | 17.291 s | −53.9% | 7 |
-| JDK 25 — Oracle GraalVM 25.0.4 | 16.883 s | −55.0% | 7 |
+| Toolchain | Licence | Whole fpp workflow | Δ vs baseline |
+|---|---|---:|---:|
+| baseline — GraalVM CE 22.3.0 / JDK 11 | GPLv2+CE | 37.494 s | — |
+| shipping — `fprime-fpp` 3.3.0a15 wheel | GPLv2+CE | 34.965 s | −6.7% |
+| **Community 21.0.2** | **GPLv2+CE** | **33.039 s** | **−11.9%** |
+| **Community 25.0.2** | **GPLv2+CE** | **32.518 s** | **−13.3%** |
+| Oracle 17.0.12 | GFTC | 18.958 s | −49.4% |
+| Oracle 21.0.12 | GFTC | 17.291 s | −53.9% |
+| Oracle 25.0.4 | GFTC | 16.883 s | −55.0% |
 
-**JDK 17 captures ~90% of the total available gain for one line of change.**
-Going further buys 8.8% more (17→21) and then 2.4% more (21→25), at the cost of
-a Scala compiler bump and, at 25, a dependency on a JDK method scheduled for
-removal.
+**The gap is the edition, not recency.** Community 25.0.2 and Oracle 25.0.4 are
+two patch releases apart on the same JDK line, and they differ by a factor of
+two. Community 25 behaves like Community 21 (−13.3% vs −11.9%), not like Oracle.
+The ~50% comes from Oracle GraalVM's advanced optimizing compiler, which GraalVM
+Community does not ship.
 
-The gain is not from the JDK version as such — it is from the `native-image`
-generation. JDK 17 is simply the newest JDK reachable *without* touching Scala,
-and it already gets the modern Substrate VM.
+This is the central finding, because **the published artifact is Community**:
+the shipped `fprime-fpp` 3.3.0a15 binary carries the embedded string
+`GraalVM 22.3.0 Java 11 CE`, identical to our baseline. Capturing the ~50%
+therefore means moving release builds from an open-source toolchain to Oracle
+GFTC. **That is a licensing decision for the project, not a technical one.**
 
----
+If Oracle GFTC is acceptable: take it, it is a large win for a tiny diff.
+If it is not: the honest open-source ceiling measured here is **−13.3%**, and
+the remaining options are `-O3` on Community and Scala Native, both covered
+below.
 
 ## 0. Scope and honesty statement
 
@@ -95,30 +104,40 @@ table, and its distributions are the tightest in the report (σ/median 1–2%).
 | Tool | Phase | Median | p95 | Min | Max | σ/median | Δ vs baseline | n |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
 | fpp-depend (full model) | baseline | 553.5 ms | 583.7 ms | 520.4 ms | 615.8 ms | 3% | — | 100 |
-|  | jdk17 | 269.1 ms | 378.9 ms | 252.2 ms | 657.2 ms | 26% | −51.4% | 100 |
-|  | jdk21 | 264.7 ms | 425.1 ms | 240.1 ms | 582.2 ms | 23% | −52.2% | 100 |
-|  | jdk25 | 248.6 ms | 274.8 ms | 235.0 ms | 299.8 ms | 5% | −55.1% | 100 |
+|  | ce21 | 543.9 ms | 603.0 ms | 508.8 ms | 751.3 ms | 7% | -1.7% | 100 |
+|  | ce25 | 539.2 ms | 574.6 ms | 505.6 ms | 635.8 ms | 4% | -2.6% | 100 |
+|  | jdk17 | 269.1 ms | 378.9 ms | 252.2 ms | 657.2 ms | 26% | -51.4% | 100 |
+|  | jdk21 | 264.7 ms | 425.1 ms | 240.1 ms | 582.2 ms | 23% | -52.2% | 100 |
+|  | jdk25 | 248.6 ms | 274.8 ms | 235.0 ms | 299.8 ms | 5% | -55.1% | 100 |
 |  | shipping | 555.0 ms | 721.8 ms | 521.0 ms | 781.7 ms | 9% | +0.3% | 100 |
 | fpp-to-cpp (full model) | baseline | 1.331 s | 1.443 s | 1.261 s | 1.568 s | 4% | — | 100 |
-|  | jdk17 | 651.1 ms | 694.9 ms | 608.2 ms | 712.2 ms | 3% | −51.1% | 100 |
-|  | jdk21 | 530.4 ms | 573.6 ms | 498.7 ms | 693.0 ms | 5% | −60.1% | 100 |
-|  | jdk25 | 526.8 ms | 620.9 ms | 490.9 ms | 771.1 ms | 10% | −60.4% | 100 |
-|  | shipping | 1.328 s | 1.427 s | 1.243 s | 1.992 s | 7% | −0.2% | 100 |
+|  | ce21 | 1.144 s | 1.221 s | 1.077 s | 1.326 s | 4% | -14.0% | 100 |
+|  | ce25 | 1.156 s | 1.248 s | 1.081 s | 1.371 s | 4% | -13.1% | 100 |
+|  | jdk17 | 651.1 ms | 694.9 ms | 608.2 ms | 712.2 ms | 3% | -51.1% | 100 |
+|  | jdk21 | 530.4 ms | 573.6 ms | 498.7 ms | 693.0 ms | 5% | -60.1% | 100 |
+|  | jdk25 | 526.8 ms | 620.9 ms | 490.9 ms | 771.1 ms | 10% | -60.4% | 100 |
+|  | shipping | 1.328 s | 1.427 s | 1.243 s | 1.992 s | 7% | -0.2% | 100 |
 | fpp-check (single small file) | baseline | 14.1 ms | 15.5 ms | 13.3 ms | 16.8 ms | 5% | — | 100 |
-|  | jdk17 | 13.4 ms | 14.4 ms | 12.4 ms | 16.1 ms | 5% | −5.4% | 100 |
-|  | jdk21 | 11.6 ms | 12.6 ms | 10.1 ms | 13.3 ms | 5% | −18.1% | 100 |
-|  | jdk25 | 11.1 ms | 11.9 ms | 10.3 ms | 12.8 ms | 4% | −21.5% | 100 |
-|  | shipping | 8.0 ms | 9.1 ms | 7.3 ms | 10.4 ms | 6% | −43.3% | 100 |
+|  | ce21 | 14.0 ms | 16.7 ms | 12.8 ms | 17.9 ms | 7% | -1.1% | 100 |
+|  | ce25 | 11.5 ms | 12.7 ms | 10.6 ms | 13.8 ms | 5% | -18.4% | 100 |
+|  | jdk17 | 13.4 ms | 14.4 ms | 12.4 ms | 16.1 ms | 5% | -5.4% | 100 |
+|  | jdk21 | 11.6 ms | 12.6 ms | 10.1 ms | 13.3 ms | 5% | -18.1% | 100 |
+|  | jdk25 | 11.1 ms | 11.9 ms | 10.3 ms | 12.8 ms | 4% | -21.5% | 100 |
+|  | shipping | 8.0 ms | 9.1 ms | 7.3 ms | 10.4 ms | 6% | -43.3% | 100 |
 | fprime-util generate (cold) | baseline | 13.823 s | 15.392 s | 13.100 s | 15.994 s | 5% | — | 20 |
-|  | jdk17 | 10.861 s | 11.412 s | 10.407 s | 11.414 s | 3% | −21.4% | 20 |
-|  | jdk21 | 10.614 s | 11.218 s | 10.257 s | 11.305 s | 3% | −23.2% | 20 |
-|  | jdk25 | 10.872 s | 11.866 s | 9.891 s | 12.903 s | 6% | −21.3% | 20 |
+|  | ce21 | 13.150 s | 13.781 s | 12.448 s | 13.807 s | 3% | -4.9% | 20 |
+|  | ce25 | 13.208 s | 14.285 s | 12.569 s | 15.786 s | 5% | -4.4% | 20 |
+|  | jdk17 | 10.861 s | 11.412 s | 10.407 s | 11.414 s | 3% | -21.4% | 20 |
+|  | jdk21 | 10.614 s | 11.218 s | 10.257 s | 11.305 s | 3% | -23.2% | 20 |
+|  | jdk25 | 10.872 s | 11.866 s | 9.891 s | 12.903 s | 6% | -21.3% | 20 |
 |  | shipping | 14.362 s | 19.460 s | 12.886 s | 20.370 s | 18% | +3.9% | 20 |
-| **whole fpp workflow (307 invocations)** | baseline | 37.494 s | 37.889 s | 36.435 s | 38.022 s | 1% | — | 10 |
-|  | **jdk17** | **18.958 s** | 19.458 s | 18.148 s | 19.576 s | 2% | **−49.4%** | 20 |
-|  | jdk21 | 17.291 s | 17.623 s | 16.946 s | 17.775 s | 1% | −53.9% | 10 |
-|  | jdk25 | 16.883 s | 17.036 s | 16.647 s | 17.066 s | 1% | −55.0% | 10 |
-|  | shipping | 34.965 s | 35.402 s | 33.912 s | 35.438 s | 1% | −6.7% | 10 |
+| whole fpp workflow (307 invocations) | baseline | 37.494 s | 37.889 s | 36.435 s | 38.022 s | 1% | — | 10 |
+|  | ce21 | 33.039 s | 33.348 s | 32.636 s | 33.502 s | 1% | -11.9% | 10 |
+|  | ce25 | 32.518 s | 33.061 s | 31.515 s | 33.205 s | 2% | -13.3% | 10 |
+|  | jdk17 | 18.958 s | 19.458 s | 18.148 s | 19.576 s | 2% | -49.4% | 20 |
+|  | jdk21 | 17.291 s | 17.623 s | 16.946 s | 17.775 s | 1% | -53.9% | 10 |
+|  | jdk25 | 16.883 s | 17.036 s | 16.647 s | 17.066 s | 1% | -55.0% | 10 |
+|  | shipping | 34.965 s | 35.402 s | 33.912 s | 35.438 s | 1% | -6.7% | 10 |
 
 Raw per-run distributions: `bench/results/*.json`.
 Regenerate: `python3 bench/analyze.py bench/results baseline`.
@@ -244,43 +263,58 @@ costs are qualitative:
 
 ## 5. Recommendation
 
-### Is the upgrade worth adopting? Yes, clearly.
+### Is the upgrade worth adopting? Yes — but the answer forks on licensing.
 
-A **49–55% reduction** in the fpp side of every build, with **byte-identical
-generated C++**, for a diff measured in single-digit lines. This is the
-cheapest large win available in this codebase.
+The measured facts:
 
-### Which one?
+- **Oracle GraalVM**: −49% to −55% on the whole workflow, byte-identical
+  generated C++, for a diff of 1 to 7 functional lines.
+- **GraalVM Community**: **−11.9% to −13.3%** for the same diff.
+- The published artifact is **Community** today.
 
-**Take JDK 21.** Reasoning:
+So there are really two decisions, and they should be taken in this order.
 
-- It captures **53.9%** of the 55.0% available — within ~1pp of JDK 25 — so the
-  newest LTS buys essentially nothing extra (2.4% relative) while carrying a
-  dependency on a method being removed.
-- Its only test failures are **JSON key ordering with provably identical
-  content**, and its generated C++ is byte-identical.
-- It is the **current maintained LTS**. JDK 17's GraalVM line is already
-  end-of-updates, which is a poor foundation for a tool you ship to others.
+### Decision 1 — is Oracle GFTC acceptable for release builds?
 
-**Take JDK 17 instead if** you want the change to be as close to zero-risk as
-possible right now: it is the only option with a fully green suite, it needs no
-Scala bump and no `-source` pin, and 49.4% of 55.0% is already ~90% of the
-prize. It is a legitimate choice; just book the end-of-updates position as debt
-you will have to repay.
+This is a project/legal call, not an engineering one, and it should be made
+before any of the version questions. GFTC permits free production use and
+redistribution of the output, but it is not an open-source licence, and moving
+to it changes the licensing posture of an artifact that is currently GPLv2+CE.
 
-**Do not take JDK 25** on Scala 3.3.x. It is the fastest by a hair and the
-smallest binary, but it is the only option with a known forward-looking break.
+**If yes:** the win is large and cheap. Take Oracle GraalVM.
+**If no:** the measured open-source ceiling is **−13.3%**, still worth having
+for a near-zero diff, and the more interesting options become `-O3` on
+Community and Scala Native.
+
+### Decision 2 — if Oracle is acceptable, which JDK?
+
+**JDK 21.** It captures 53.9% of the 55.0% available, so JDK 25 buys ~1pp more
+while carrying a dependency on a JDK method scheduled for removal (§4). Its
+only test failures are provably content-preserving JSON reordering, its
+generated C++ is byte-identical, and it is the current maintained LTS —
+where JDK 17's GraalVM line is already end-of-updates.
+
+**JDK 17** is the lower-risk alternative: the only fully green suite, no Scala
+bump, no `-source` pin, and 49.4% of 55.0% is ~90% of the prize for **one**
+functional line. A defensible choice; just book the end-of-updates position as
+debt.
+
+**Not JDK 25** on Scala 3.3.x.
+
+### If Oracle is not acceptable
+
+Two FOSS levers, neither fully resolved in this report:
+
+1. **`-O3` on Community.** Community *does* ship `-O3` (only PGO is
+   Oracle-exclusive; `-march` is also available). A CE 25 `-O3` binary was
+   built but **not yet benchmarked**, so its effect is **unmeasured**.
+2. **Scala Native** (BSD-3). Investigated and partially built — see §8.
 
 ### Is a per-CPU-level variant scheme justified?
 
-**Unanswerable — `perf/march-v3` was never built or measured.**
-
-I will not guess at it. What the measurements *do* bound: cold `generate` is
-dominated by CMake rather than fpp, and startup is already ~11–13 ms, so
-`-march` has little room in two of the four measurements. The burden of proof
-sits with march-v3 clearing 3% on the whole-workflow number, and the harness is
-ready to test it in about ten minutes of machine time. Until it is run, the
-answer is **"unknown", not "probably not"**.
+**Unanswerable — `perf/march-v3` was never built or measured.** No march-v3
+number exists, so the ~3% stop condition cannot be evaluated. Stated as unknown
+rather than guessed.
 
 ---
 

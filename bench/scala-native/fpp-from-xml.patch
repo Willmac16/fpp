@@ -1,0 +1,28 @@
+diff --git a/compiler/tools/fpp/src/main/scala/fpp-from-xml.scala b/compiler/tools/fpp/src/main/scala/fpp-from-xml.scala
+index af898445..de9ea0e8 100644
+--- a/compiler/tools/fpp/src/main/scala/fpp-from-xml.scala
++++ b/compiler/tools/fpp/src/main/scala/fpp-from-xml.scala
+@@ -21,7 +21,22 @@ object FPPFromXml {
+   def parseXmlFile(file: File): Result.Result[XmlFppWriter.File] = {
+     for {
+       elem <- try {
+-        Right(scala.xml.XML.loadFile(file.toString))
++        // Scala Native experiment: scala.xml.XML.loadFile pulls in
++        // javax.xml.parsers.SAXParser* and org.xml.sax.*, none of which exist
++        // in Scala Native's javalib — it is the ONLY link failure in the whole
++        // compiler. ConstructingParser is pure Scala and is present in the
++        // _native0.4_3 artifact.
++        //
++        // NOT equivalent: ConstructingParser does no DTD/entity resolution and
++        // handles whitespace differently, so fpp-from-xml needs revalidating
++        // against real F Prime XML before this could ship.
++        val source = scala.io.Source.fromFile(file.toString)
++        try {
++          val parser =
++            scala.xml.parsing.ConstructingParser.fromSource(source, preserveWS = true)
++          Right(parser.document().docElem.asInstanceOf[scala.xml.Elem])
++        }
++        finally source.close()
+       }
+       catch {
+         case e: Exception => Left(XmlError.ParseError(file.toString, e.toString))

@@ -1,0 +1,4 @@
+[info] Discovered 10091 classes and 69822 methods
+[info] Optimizing (release-fast mode) (30693 ms)
+[info] Generating intermediate code (21187 ms)
+[info] Produced 1 files

@@ -1,0 +1,79 @@
+#!/bin/bash
+
+# ----------------------------------------------------------------------
+# Extend the GraalVM reflection trace by exercising the FPP tools over real
+# F Prime models.
+#
+# Run this AFTER ./install-trace and ./test, as the last step of the
+# reflection-config regeneration procedure in README.adoc. ./test only
+# exercises the compiler's own fixtures; this step covers the code paths that
+# only real framework/topology models reach — in particular the JSON model
+# generation path (fpp-to-json / circe), which is the most reflection-dependent
+# part of the compiler and the most likely to produce a native image that
+# builds clean and then fails at runtime.
+#
+# Requires the FPRIME environment variable to point at an fprime checkout.
+#
+# History: an earlier version of this script was removed in a48f94c7. This one
+# is restored and fixed:
+#   - `./Ref` moved to `./TestDeploymentsProject/Ref`
+#   - the venv activation was `. /tmp/fprime-venv` (missing /bin/activate)
+# ----------------------------------------------------------------------
+
+set -u
+
+# Normalize the working directory
+cd "$(dirname "$0")"
+
+fprime_generate_flags="-f -DFPRIME_SKIP_TOOLS_VERSION_CHECK=ON -DFPRIME_ENABLE_JSON_MODEL_GENERATION=ON --ut --make"
+fprime_project_paths=". ./FppTestProject/FppTest ./TestDeploymentsProject/Ref"
+
+if [[ "${FPRIME}" == "" ]]
+then
+    echo "[ERROR] Must set FPRIME variable to run $0" 1>&2
+    exit 1
+fi
+
+# If a VIRTUAL_ENV is not set, then create one
+if [[ "${VIRTUAL_ENV:-}" == "" ]]
+then
+    python3 -m venv /tmp/fprime-venv
+    . /tmp/fprime-venv/bin/activate
+    pip install -q -r "${FPRIME}/requirements.txt"
+fi
+
+# Overlay the trace version of the tools
+export PATH="$(pwd)/bin:${PATH}"
+
+status=0
+
+# Conduct tracing through F Prime generate. `--make` is used because it is
+# single-string, and so does not trip the tracing agent's lock-file contention.
+for project_path in ${fprime_project_paths}
+do
+    echo "Generating UTs for: ${project_path}"
+    if ! (cd "${FPRIME}/${project_path}" && fprime-util generate ${fprime_generate_flags})
+    then
+        echo "[ERROR] generate failed for ${project_path}" 1>&2
+        status=1
+    fi
+done
+
+# Trace fpp-to-json explicitly. This path is not reached by generate and is the
+# one the CI test for fpp-to-json was historically unhappy about.
+topology_dir="${FPRIME}/TestDeploymentsProject/Ref/Top"
+locs="${FPRIME}/TestDeploymentsProject/build-fprime-automatic-native-ut/locs.fpp"
+if test -f "${locs}"
+then
+    (
+      cd "${topology_dir}" || exit 1
+      dependencies=$(fpp-depend "${locs}" ./*.fpp) || exit 1
+      # shellcheck disable=SC2086
+      fpp-to-json ${dependencies} ./*.fpp
+    ) || { echo "[ERROR] fpp-to-json tracing failed" 1>&2; status=1; }
+else
+    echo "[ERROR] no unit-test locs.fpp at ${locs}; fpp-to-json not traced" 1>&2
+    status=1
+fi
+
+exit $status

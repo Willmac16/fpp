@@ -363,3 +363,59 @@ fails at runtime on real models.
 All three were restored with `git checkout`. **The reflection config on this
 branch is the original committed one, not a regenerated one.** Phase B remains
 incomplete until it is regenerated per O-10.
+
+---
+
+## O-15. JDK 21 reorders dictionary JSON (3 test failures, content identical)
+
+The Scala 3.1.2 -> 3.3.8 bump that JDK 21 requires changes the iteration order
+of `typeDefinitions` in `fpp-to-dict` output. Three tests in
+`tools/fpp-to-dict/test/top` fail as a result.
+
+Parsed as JSON rather than diffed as text, the two sides are the same multiset:
+
+```
+[typeDefinitions] ref=22 out=22  same-as-multiset=True
+  missing from out: 0   extra in out: 0
+```
+
+Pure reordering — nothing added, lost, or altered. A raw text diff makes it look
+worse than it is (values appear to change because the diff re-aligns after a
+move), which is why it was checked structurally.
+
+Impact: breaks golden files, and makes dictionary output non-reproducible across
+Scala versions. Not fixed — imposing a deterministic sort in the dictionary
+writer is a compiler source change, out of scope.
+
+## O-16. JDK 25 emits a deprecation banner on every invocation (907 failures)
+
+Every fpp invocation under Oracle GraalVM 25.0.4 prints to **stderr**:
+
+```
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by scala.runtime.LazyVals$
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+```
+
+`compiler/test` captures stderr into its golden-file diffs, so 907 of 1521
+tests fail. Stripping `WARNING:` lines, **60 of 60 sampled outputs match their
+reference exactly** — the failures are entirely the banner, not behaviour. Same
+class of problem as O-11.
+
+The second line is the real finding and is **not** cosmetic: Scala 3.3.8's
+lazy-val implementation depends on a JDK method scheduled for removal. That is
+the same `LazyVals` / `0bitmap$N` mechanism documented in O-10. JDK 25 on
+Scala 3.3 LTS works today and breaks on a future JDK; escaping it needs a newer
+Scala line (3.8.x) with `VarHandle`-based lazy vals.
+
+**Not verified:** whether the banner can be suppressed at native-image build
+time, and whether Scala 3.8.x builds fpp at all.
+
+## O-17. Phase C was never started
+
+`perf/o3`, `perf/pgo`, and `perf/march-v3` were not created, built, or measured.
+Work was redirected to the JDK ladder (17 / 21 / 25) at the user's request.
+
+**There is no march-v3 number, so the ~3% stop condition cannot be evaluated.**
+This is stated as unknown rather than guessed. The harness is ready; each
+variant is a `FPP_NATIVE_IMAGE_FLAGS` setting plus one `./release` and one
+benchmark run.

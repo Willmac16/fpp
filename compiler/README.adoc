@@ -6,16 +6,16 @@
 
 . The https://www.scala-sbt.org[Simple Build Tool (sbt)] for Scala.
 
-. Version 21 of the Java Development Kit (JDK).
+. Version 17 of the Java Development Kit (JDK).
 If you have a different version of Java installed on your system, then
 you can do the following:
 
-.. Install version 21 of the JDK.
+.. Install version 17 of the JDK.
 For example, in MacPorts you can run
 +
 [source,bash]
 ----
-% sudo port install openjdk21
+% sudo port install openjdk17
 ----
 
 .. Set the environment variable `FPP_JAVA_HOME` to the home directory associated
@@ -24,7 +24,7 @@ For example, on Mac OS:
 +
 [source,bash]
 ----
-% export FPP_JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk21/Contents/Home
+% export FPP_JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk17/Contents/Home
 ----
 
 == Installing
@@ -130,8 +130,8 @@ native binaries.
 
 To use the `release` script, you must carry out the following steps:
 
-. Install GraalVM for JDK 21.
-For example, download Oracle GraalVM for JDK 21 from
+. Install GraalVM for JDK 17.
+For example, download Oracle GraalVM for JDK 17 from
 https://www.graalvm.org/downloads/ and unpack it.
 +
 NOTE: Oracle GraalVM ships `-O3` and profile-guided optimization (PGO).
@@ -145,7 +145,7 @@ For example, on Mac OS:
 +
 [source,bash]
 ----
-% export GRAALVM_JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-jdk-21/Contents/Home
+% export GRAALVM_JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-jdk-17/Contents/Home
 % export FPP_GRAALVM_JAVA_HOME="$GRAALVM_JAVA_HOME"
 ----
 

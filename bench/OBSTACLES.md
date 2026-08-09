@@ -210,17 +210,30 @@ The claim above is not qualitative. Bucketing the committed 972-entry
 | `scala.*` / `java.*` / other | 14 |
 | `io.circe.*` itself | 1 |
 
-**947 of 972 entries — 97% — are circe-derived JSON encoders**, and 963 entries
-register `fields` for reflective access. `circe-generic` derives an encoder per
-type and each derived encoder compiles to an anonymous class, which is why the
-config is essentially a registry of those anon classes. Note they are fpp's own
-derived classes, not circe's: only one `io.circe` name appears.
+**947 of 972 entries — 97% — name circe-derived JSON encoder classes.** `circe-generic`
+derives an encoder per type and each compiles to an anonymous class. They are
+fpp's own derived classes rather than circe's: only one `io.circe` name appears.
+
+**What is actually being reflected on is not circe.** Inspecting the registered
+members rather than the class names: **963 of 963 field registrations are
+`0bitmap$N`**, and the only registered methods are
+`java.lang.invoke.VarHandle.releaseFence` and
+`SAXParserFactoryImpl.<init>`. `0bitmap$N` fields are **Scala 3 lazy-val
+bitmaps** — on the JVM, `scala.runtime.LazyVals` resolves them with
+`Unsafe.objectFieldOffset(getDeclaredField(...))`, and that is the reflection
+the agent traces. circe on Scala 3 derives at *compile* time; each derived
+encoder just happens to hold a lazy val.
+
+So the correct statement is: the config is a registry of lazy-val bitmaps inside
+circe-derived classes, not a registry of circe runtime reflection. The
+operational conclusion is unchanged, because those encoder classes are only
+instantiated when the JSON path actually runs.
 
 `native-image` closes the world and drops anything unregistered. Those ~946 anon
-classes correspond to the full AST/Analysis type graph. `compiler/test` does
-exercise the path, but with **2 `fpp-to-json` test directories and 1
-`fpp-to-dict`, out of 102 total**, over small fixture models — so it instantiates
-only the encoders those fixtures reach.
+classes span the full AST/Analysis type graph. `compiler/test` does exercise the
+path, but with **2 `fpp-to-json` test directories and 1 `fpp-to-dict`, out of 102
+total**, over small fixture models — so it reaches only the encoders those
+fixtures instantiate.
 
 That is the size of the hole: regenerating from `./test` alone plausibly
 recovers a few dozen of ~946. The image links, the suite goes green, and

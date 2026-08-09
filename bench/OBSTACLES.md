@@ -196,6 +196,36 @@ path. That is plausibly why it was deleted rather than maintained.
 
 Outcome of the diff is recorded in `REPORT.md` §4.
 
+### Why the JSON path dominates: measured breakdown of `reflect-config.json`
+
+The claim above is not qualitative. Bucketing the committed 972-entry
+`reflect-config.json` by class name:
+
+| Bucket | Entries |
+|---|---:|
+| `fpp.compiler.codegen.AnalysisJsonEncoder$$anon$N` | 607 |
+| `fpp.compiler.codegen.AstJsonEncoder$$anon$N` | 339 |
+| `fpp.compiler.codegen.LocMapJsonEncoder$$anon$N` | 1 |
+| `fpp.compiler.*` (everything else) | 10 |
+| `scala.*` / `java.*` / other | 14 |
+| `io.circe.*` itself | 1 |
+
+**947 of 972 entries — 97% — are circe-derived JSON encoders**, and 963 entries
+register `fields` for reflective access. `circe-generic` derives an encoder per
+type and each derived encoder compiles to an anonymous class, which is why the
+config is essentially a registry of those anon classes. Note they are fpp's own
+derived classes, not circe's: only one `io.circe` name appears.
+
+`native-image` closes the world and drops anything unregistered. Those ~946 anon
+classes correspond to the full AST/Analysis type graph. `compiler/test` does
+exercise the path, but with **2 `fpp-to-json` test directories and 1
+`fpp-to-dict`, out of 102 total**, over small fixture models — so it instantiates
+only the encoders those fixtures reach.
+
+That is the size of the hole: regenerating from `./test` alone plausibly
+recovers a few dozen of ~946. The image links, the suite goes green, and
+`fpp-to-dict` on a real topology then hits an unregistered encoder at runtime.
+
 ### O-11. `JAVA_TOOL_OPTIONS` breaks the JVM-tool test suite in this container
 
 The container sets `JAVA_TOOL_OPTIONS` (proxy truststore + proxy host) globally.

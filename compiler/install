@@ -39,7 +39,9 @@ cd $wd
 # Pull in the version info
 . ../version.sh
 
-scala_version="3.1.2"
+# Must match `ThisBuild / scalaVersion` in build.sbt — used to locate the
+# assembly jar under target/scala-$scala_version.
+scala_version="3.3.8"
 
 if test -n "$FPP_JAVA_HOME"
 then

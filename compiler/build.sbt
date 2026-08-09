@@ -2,14 +2,31 @@
 
 name := "fpp-compiler"
 ThisBuild / organization := "gov.nasa.jpl"
-ThisBuild / scalaVersion := "3.1.2"
+// Scala 3.3.x is the LTS line and is the lowest Scala 3 that can read JDK 21
+// class files. 3.1.2 fails on JDK 21 with:
+//   class file .../java/lang/reflect/AccessFlag.class is broken
+// NOTE: compiler/install pins this same version to locate the assembly jar.
+// Keep the two in sync.
+ThisBuild / scalaVersion := "3.3.8"
 
 lazy val settings = Seq(
   scalacOptions ++= Seq(
     "-deprecation",
     "-unchecked",
     "-Xfatal-warnings",
-    "-Xmax-inlines:100"
+    "-Xmax-inlines:100",
+    // Pin the *language* level while the *compiler* moves forward for JDK 21.
+    //
+    // Scala 3.2 made unchecked pattern bindings (`val x :: xs = someList`) a
+    // hard error. The compiler sources contain ~60 of them, so building them
+    // with 3.3 semantics fails. Compiling at -source:3.1 keeps the semantics
+    // the code was written against, so this upgrade stays toolchain-only and
+    // does not touch a single .scala file.
+    //
+    // FOLLOW-UP (separate change, deliberately not done here): migrate those
+    // bindings — `sbt -rewrite -source 3.2-migration` does it automatically —
+    // and then drop this flag.
+    "-source:3.1"
   ),
   libraryDependencies ++= dependencies, 
   Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oNCXELOPQRM"),

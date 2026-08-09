@@ -18,6 +18,7 @@ TOOLS = [
     ("to-cpp", "fpp-to-cpp (full model)"),
     ("check-small", "fpp-check (single small file)"),
     ("generate", "fprime-util generate (cold)"),
+    ("workflow", "whole fpp workflow (307 invocations)"),
 ]
 
 def pct(xs, p):

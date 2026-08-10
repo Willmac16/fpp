@@ -53,7 +53,7 @@ jobs:
       - if: runner.os == 'Linux'
         name: Install Linux build tools
         run: |
-          dnf install --assumeyes clang
+          dnf install --assumeyes clang lld
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
       - name: Show toolchain versions

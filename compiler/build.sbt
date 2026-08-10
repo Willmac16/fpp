@@ -55,6 +55,19 @@ lazy val macOSUnwindLinkerOptions =
   )
   else Seq.empty
 
+// Linux clang defaults to the slow ld.bfd linker; lld is much faster and
+// parallel, and is the single biggest Linux-vs-macOS nativeLink time sink.
+// -fuse-ld=lld is a clang *driver* option (not a linker arg), so it is passed
+// bare rather than wrapped in -Wl,. Keyed off the inverse of the macOS guard so
+// macOS keeps its default ld64 (byte-for-byte unchanged) and every non-macOS
+// platform (Linux, incl. the manylinux container where os.name is "Linux")
+// opts in.
+lazy val linuxLldLinkerOptions =
+  if (System.getProperty("os.name") != "Mac OS X") Seq(
+    "-fuse-ld=lld",
+  )
+  else Seq.empty
+
 lazy val root = (project in file("."))
   .settings(settings)
   .aggregate(
@@ -80,7 +93,7 @@ lazy val nativeFpp = (project in file("tools/fpp"))
     nativeConfig ~= { config =>
       config.withLTO(LTO.thin).withMode(Mode.releaseFast).withGC(GC.none)
         .withLinkStubs(true)
-        .withLinkingOptions(config.linkingOptions ++ macOSUnwindLinkerOptions)
+        .withLinkingOptions(config.linkingOptions ++ macOSUnwindLinkerOptions ++ linuxLldLinkerOptions)
     }
   )
   .dependsOn(nativeLib)

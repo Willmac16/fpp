@@ -419,3 +419,61 @@ Work was redirected to the JDK ladder (17 / 21 / 25) at the user's request.
 This is stated as unknown rather than guessed. The harness is ready; each
 variant is a `FPP_NATIVE_IMAGE_FLAGS` setting plus one `./release` and one
 benchmark run.
+
+---
+
+## O-18. The toolchain upgrade silently narrows the shipped CPU baseline
+
+Found while running Phase C, and not something the brief anticipated.
+
+GraalVM CE 22.3.0 (baseline, and what fpp publishes today) has **no `-march`
+flag at all** — `native-image --help` contains zero matches — and reports no
+target machine. Every modern GraalVM, **Oracle and Community alike**, defaults
+to `target machine: x86-64-v3`.
+
+`x86-64-v3` *requires* AVX2, BMI1/2, FMA and LZCNT. Confirmed by disassembly
+rather than by reading the flag:
+
+| Binary | `-march` passed | AVX2/FMA-class instructions |
+|---|---|---:|
+| baseline (CE 22.3.0) | flag does not exist | **0** |
+| jdk21 (Oracle 21) | **none** | **87** |
+| marchv3 (Oracle 21) | `-march=x86-64-v3` | **87** |
+
+Two consequences:
+
+1. **`perf/march-v3` is a no-op.** It produces the same instruction set as the
+   default build because the default already *is* x86-64-v3. The brief's
+   "is a per-CPU-level variant scheme justified?" question is therefore moot as
+   posed — there is no variant to opt into, only one to opt *out* of.
+2. **Upgrading silently drops support for pre-2013 CPUs.** Anything older than
+   roughly Haswell / Excavator will fault on the upgraded binary but runs the
+   currently-published one. For a compiler shipped to third parties — some of
+   whom run old ground-support hardware — that is a real, unrequested
+   compatibility regression buried inside a "just bump the toolchain" change.
+
+The useful variant is therefore the inverse of the brief's: `-march=compatibility`,
+to restore the old baseline, with the performance cost measured. That build is
+included in Phase C.
+
+**Not verified:** that an upgraded binary actually faults on a pre-AVX2 CPU.
+No such CPU was available; the claim rests on the declared target level and the
+disassembly above, which is strong but indirect.
+
+## O-19. The Oracle/Community gap is ML-inferred PGO
+
+The `native-image` build banner differs between editions in exactly one field:
+
+```
+Oracle 21   Graal compiler: optimization level: 2, target machine: x86-64-v3, PGO: ML-inferred
+CE 25       Graal compiler: optimization level: 2, target machine: x86-64-v3
+CE 21       Graal compiler: optimization level: 2, target machine: x86-64-v3
+```
+
+Same optimization level, same target machine. Oracle additionally applies an
+**ML-inferred profile by default**; Community does not, and cannot — `--pgo` is
+absent from Community entirely.
+
+That is a mechanistic explanation for the ~2x edition gap measured in
+REPORT.md, and it explains why `-O3` on Community changed nothing (O-17 area):
+the missing ingredient is profile guidance, not optimization level.

@@ -21,7 +21,13 @@ object FPPFromXml {
   def parseXmlFile(file: File): Result.Result[XmlFppWriter.File] = {
     for {
       elem <- try {
-        Right(scala.xml.XML.loadFile(file.toString))
+        val source = scala.io.Source.fromFile(file.toString)
+        try {
+          val parser =
+            scala.xml.parsing.ConstructingParser.fromSource(source, preserveWS = true)
+          Right(parser.document().docElem.asInstanceOf[scala.xml.Elem])
+        }
+        finally source.close()
       }
       catch {
         case e: Exception => Left(XmlError.ParseError(file.toString, e.toString))

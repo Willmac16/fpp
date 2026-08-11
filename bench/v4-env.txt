@@ -1,0 +1,38 @@
+phase:              v4
+captured:           2026-08-10T02:54:42+00:00
+
+--- source ---
+fpp git SHA:        7e58e19fa93bba69b526111de7da5fe7c102be40
+fpp branch:         claude/fpp-toolchain-upgrade-okqv09
+fprime git SHA:     dc115c3dc2228c403477bd7738fc6bd895a72468
+FPP VERSION string: Unreleased, after v3.2.0
+
+--- JDK / GraalVM ---
+GRAALVM_JAVA_HOME:  /home/user/toolchains/graalvm-jdk-21.0.12+7.1
+java -version:
+  java version "21.0.12" 2026-07-21 LTS
+  Java(TM) SE Runtime Environment Oracle GraalVM 21.0.12+7.1 (build 21.0.12+7-LTS-jvmci-23.1-b96)
+  Java HotSpot(TM) 64-Bit Server VM Oracle GraalVM 21.0.12+7.1 (build 21.0.12+7-LTS-jvmci-23.1-b96, mixed mode, sharing)
+native-image --version:
+  native-image 21.0.12 2026-07-21
+  GraalVM Runtime Environment Oracle GraalVM 21.0.12+7.1 (build 21.0.12+7-LTS-jvmci-23.1-b96)
+  Substrate VM Oracle GraalVM 21.0.12+7.1 (build 21.0.12+7-LTS, serial gc, compressed references)
+
+--- Scala / sbt ---
+scalaVersion:       scalaVersion := "3.1.2"
+sbt.version:        sbt.version=1.10.11
+sbt-assembly:       addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "1.2.0")
+
+--- native-image flags ---
+FPP_NATIVE_IMAGE_FLAGS: -march=x86-64-v4
+fixed flags in compiler/release: --no-fallback --install-exit-handlers
+full command shape: native-image $FPP_NATIVE_IMAGE_FLAGS --no-fallback --install-exit-handlers -jar bin/fpp.jar <out>
+
+--- C toolchain ---
+  cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+
+--- host ---
+CPU:                Intel(R) Xeon(R) Processor @ 2.80GHz
+cores:              4
+mem:                15 GiB
+kernel:             Linux 6.18.5-fc-v20

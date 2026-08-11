@@ -6,41 +6,61 @@ graal_arch="$(uname -m)"
 # Override graal_arch when on amd64
 if [[ "$graal_arch" == "x86_64" ]] || [[ "$graal_arch" == "x64" ]]
 then
-  graal_arch="amd64"
+  graal_arch="x64"
 elif [[ "$graal_arch" == "arm64" ]] || [[ "$graal_arch" == "aarch64" ]]
 then
   graal_arch="aarch64"
 fi
 
-graal_ver="22.3.0"
+# Oracle GraalVM for JDK 17.
+#
+# Two changes from the previous GraalVM CE 22.3.0 / JDK 11 setup:
+#   1. JDK 11 -> JDK 17. JDK 11 is the reason the toolchain was pinned to a
+#      2022-era GraalVM at all.
+#   2. native-image now ships *inside* the distribution, so the separate
+#      `gu install native-image` step is gone. `gu` does not exist in this
+#      layout; keeping the call would fail the build.
+#
+# Why 17 and not 21: Scala 3.1.2 cannot parse java.lang.reflect.AccessFlag,
+# which was added in JDK 20, so JDK 21 additionally requires moving Scala to
+# 3.3.x and pinning -source:3.1. JDK 17 needs neither. The cost is that this is
+# a pinned archive release, not `latest`: 17.0.12 is the final GraalVM for
+# JDK 17, so this line receives no further updates. Revisit if that matters
+# more than the smaller diff.
+#
+# Distribution note: this is Oracle GraalVM (GFTC licence), not GraalVM
+# Community. Community would also work for a plain `./release`, but does NOT
+# ship -O3 or PGO, both of which the optimization experiments depend on.
+graal_ver="17.0.12"
 graal_os="$( uname -s | tr "[:upper:]" "[:lower:]")"
-graal_ar="graalvm-ce-java11-${graal_os}-${graal_arch}-${graal_ver}.tar.gz"
-graal_dir="$(pwd)/graalvm-ce-java11-${graal_ver}"
-graal_url="https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-${graal_ver}/${graal_ar}"
+graal_ar="graalvm-jdk-${graal_ver}_${graal_os}-${graal_arch}_bin.tar.gz"
+graal_url="https://download.oracle.com/graalvm/17/archive/${graal_ar}"
 
 # Start fresh
-if [ -d "${graal_dir}" ]
-then
-   rm -r "${graal_dir}"
-fi
-
+rm -rf graalvm-extract
+mkdir -p graalvm-extract
 
 # Download Graal
 echo "Downloading GraalVM from: ${graal_url}"
 curl -L "${graal_url}" > "${graal_ar}"
-tar -xzf "${graal_ar}"
-graal_bin="${graal_dir}/bin"
+tar -xzf "${graal_ar}" -C graalvm-extract --strip-components=1
+
+graal_bin="$(pwd)/graalvm-extract/bin"
 if [ ! -d "${graal_bin}" ]
 then
-    graal_bin="${graal_dir}/Contents/Home/bin"
+    graal_bin="$(pwd)/graalvm-extract/Contents/Home/bin"
 fi
 export PATH="${graal_bin}:${PATH}"
 export FPP_GRAALVM_JAVA_HOME="$(dirname ${graal_bin})"
-# Install native image
-${graal_bin}/gu install native-image
+# `release` reads GRAALVM_JAVA_HOME; `install-trace` reads FPP_GRAALVM_JAVA_HOME.
+# Export both so either entry point works from this action.
+export GRAALVM_JAVA_HOME="${FPP_GRAALVM_JAVA_HOME}"
+
+"${graal_bin}/native-image" --version
 
 if [ -n "$GITHUB_ENV" ]
 then
     echo PATH="${PATH}" >> $GITHUB_ENV
     echo FPP_GRAALVM_JAVA_HOME="${FPP_GRAALVM_JAVA_HOME}" >> $GITHUB_ENV
+    echo GRAALVM_JAVA_HOME="${GRAALVM_JAVA_HOME}" >> $GITHUB_ENV
 fi

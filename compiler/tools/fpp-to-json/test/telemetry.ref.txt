@@ -1407,12 +1407,10 @@
               "astNodeId" : 11
             },
             "channelType" : {
-              "Int" : {
-                "PrimitiveInt" : {
-                  "kind" : {
-                    "U32" : {
-                      
-                    }
+              "PrimitiveInt" : {
+                "kind" : {
+                  "U32" : {
+                    
                   }
                 }
               }
@@ -1472,12 +1470,10 @@
               "astNodeId" : 30
             },
             "channelType" : {
-              "Primitive" : {
-                "Float" : {
-                  "kind" : {
-                    "F64" : {
-                      
-                    }
+              "Float" : {
+                "kind" : {
+                  "F64" : {
+                    
                   }
                 }
               }
@@ -1567,12 +1563,10 @@
               "astNodeId" : 57
             },
             "channelType" : {
-              "Primitive" : {
-                "Float" : {
-                  "kind" : {
-                    "F64" : {
-                      
-                    }
+              "Float" : {
+                "kind" : {
+                  "F64" : {
+                    
                   }
                 }
               }
@@ -1639,12 +1633,10 @@
               "astNodeId" : 11
             },
             "channelType" : {
-              "Int" : {
-                "PrimitiveInt" : {
-                  "kind" : {
-                    "U32" : {
-                      
-                    }
+              "PrimitiveInt" : {
+                "kind" : {
+                  "U32" : {
+                    
                   }
                 }
               }
@@ -1704,12 +1696,10 @@
               "astNodeId" : 30
             },
             "channelType" : {
-              "Primitive" : {
-                "Float" : {
-                  "kind" : {
-                    "F64" : {
-                      
-                    }
+              "Float" : {
+                "kind" : {
+                  "F64" : {
+                    
                   }
                 }
               }
@@ -1799,12 +1789,10 @@
               "astNodeId" : 57
             },
             "channelType" : {
-              "Primitive" : {
-                "Float" : {
-                  "kind" : {
-                    "F64" : {
-                      
-                    }
+              "Float" : {
+                "kind" : {
+                  "F64" : {
+                    
                   }
                 }
               }
@@ -2111,162 +2099,120 @@
     },
     "typeMap" : {
       "2" : {
-        "Int" : {
-          "PrimitiveInt" : {
-            "kind" : {
-              "U32" : {
-                
-              }
+        "PrimitiveInt" : {
+          "kind" : {
+            "U32" : {
+              
             }
           }
         }
       },
       "3" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "6" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "8" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "10" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "12" : {
-        "Primitive" : {
-          "Float" : {
-            "kind" : {
-              "F64" : {
-                
-              }
+        "Float" : {
+          "kind" : {
+            "F64" : {
+              
             }
           }
         }
       },
       "13" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "16" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "17" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "19" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "20" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "22" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "23" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "25" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "27" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "29" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "49" : {
-        "Primitive" : {
-          "Float" : {
-            "kind" : {
-              "F64" : {
-                
-              }
+        "Float" : {
+          "kind" : {
+            "F64" : {
+              
             }
           }
         }
       },
       "52" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "54" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "56" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       },
       "66" : {
-        "Int" : {
-          "Integer" : {
-            
-          }
+        "Integer" : {
+          
         }
       }
     },
@@ -2433,12 +2379,10 @@
                 "astNodeId" : 11
               },
               "channelType" : {
-                "Int" : {
-                  "PrimitiveInt" : {
-                    "kind" : {
-                      "U32" : {
-                        
-                      }
+                "PrimitiveInt" : {
+                  "kind" : {
+                    "U32" : {
+                      
                     }
                   }
                 }
@@ -2523,12 +2467,10 @@
                 "astNodeId" : 30
               },
               "channelType" : {
-                "Primitive" : {
-                  "Float" : {
-                    "kind" : {
-                      "F64" : {
-                        
-                      }
+                "Float" : {
+                  "kind" : {
+                    "F64" : {
+                      
                     }
                   }
                 }
@@ -2643,12 +2585,10 @@
                 "astNodeId" : 57
               },
               "channelType" : {
-                "Primitive" : {
-                  "Float" : {
-                    "kind" : {
-                      "F64" : {
-                        
-                      }
+                "Float" : {
+                  "kind" : {
+                    "F64" : {
+                      
                     }
                   }
                 }

@@ -43,7 +43,7 @@ case class DictionaryJsonEncoder(
     
     /** Enum Constant JSON Encoding */
     private def enumConstantAsJson(aNode: AstNode[Ast.DefEnumConstant]): Map[String, Json] = {
-        val Value.EnumConstant(value, _) = dictionaryState.a.valueMap(aNode.id)
+        val value = Expect.subtype[Value.EnumConstant](dictionaryState.a.valueMap(aNode.id)).value
         Map(value._1 -> value._2.asJson)
     }
 
@@ -176,7 +176,7 @@ case class DictionaryJsonEncoder(
     /** JSON Encoding for struct values */
     def structValueAsJson(value: Value.Struct): Json = {
         val Value.Struct(Value.AnonStruct(members), t) = value
-        val Type.Struct(_, _, _, sizes, _) = dictionaryState.a.typeMap(t.node._2.id)
+        val sizes = Expect.subtype[Type.Struct](dictionaryState.a.typeMap(t.node._2.id)).sizes
         members.map((key, v) =>
             val valueJson = valueAsJson(v)
             sizes.get(key) match
@@ -214,7 +214,7 @@ case class DictionaryJsonEncoder(
             symbol match {
                 case Symbol.Array(preA, node, postA) => {
                     val arrayType = dictionaryState.a.typeMap(symbol.getNodeId)
-                    val Type.Array(_, anonArray, default, format) = arrayType
+                    val Type.Array(_, anonArray, default, format) = Expect.subtype[Type.Array](arrayType)
                     val defaultJsonList: List[Json]= default match {
                         case Some(defaultVal) => for (elem <- defaultVal._1._1) yield valueAsJson(elem)
                         case None => List.empty[Json]
@@ -233,7 +233,7 @@ case class DictionaryJsonEncoder(
                     jsonWithOptionalValues(json, optionalValues)
                 }
                 case Symbol.Enum(preA, node, postA) => {
-                    val Type.Enum(_, repType, default) = dictionaryState.a.typeMap(symbol.getNodeId)
+                    val Type.Enum(_, repType, default) = Expect.subtype[Type.Enum](dictionaryState.a.typeMap(symbol.getNodeId))
                     val enumDefault = default match {
                         case Some(defaultVal) => defaultVal.value._1
                         case None => ""
@@ -259,7 +259,7 @@ case class DictionaryJsonEncoder(
                     jsonWithOptionalValues(json, optionalValues)
                 }
                 case Symbol.Struct(preA, node, postA) => {
-                    val Type.Struct(_, _, default, sizes, _) = dictionaryState.a.typeMap(symbol.getNodeId)
+                    val Type.Struct(_, _, default, sizes, _) = Expect.subtype[Type.Struct](dictionaryState.a.typeMap(symbol.getNodeId))
                     val memberFormatMap = node.data.members.flatMap { case (_, memberNode, _) =>
                         memberNode.data.format.map(format => memberNode.data.name -> format.data)
                     }.toMap
@@ -292,7 +292,7 @@ case class DictionaryJsonEncoder(
                 }
                 case Symbol.AliasType(preA, node, postA) => {
                     val alias = dictionaryState.a.typeMap(symbol.getNodeId)
-                    val Type.AliasType(_, aliasType) = alias
+                    val Type.AliasType(_, aliasType) = Expect.subtype[Type.AliasType](alias)
                     val json = Json.obj(
                         "kind" -> "alias".asJson,
                         "qualifiedName" -> qualifiedName.asJson,
@@ -623,7 +623,7 @@ case class DictionaryJsonEncoder(
                 case x: BigInt => Json.obj(key -> x.asJson).deepMerge(json)
                 case x: String => Json.obj(key -> x.asJson).deepMerge(json)
                 case Value.Struct(a, t) => {
-                    val Value.AnonStruct(members) = a
+                    val members = Expect.subtype[Value.AnonStruct](a).members
                     val memberJson = members.map((key, value) => (key.toString -> valueAsJson(value))).asJson
                     Json.obj(key -> memberJson).deepMerge(json)
                 }

@@ -2,6 +2,7 @@ package fpp.compiler.codegen
 
 import fpp.compiler.analysis._
 import fpp.compiler.ast._
+import fpp.compiler.util._
 
 /** Writes out C++ for struct definitions */
 case class StructCppWriter(
@@ -19,7 +20,7 @@ case class StructCppWriter(
 
   private val fileName = ComputeCppFiles.FileNames.getStruct(structName)
 
-  private val structType@Type.Struct(_, _, _, _, _) = s.a.typeMap(node.id)
+  private val structType = Expect.subtype[Type.Struct](s.a.typeMap(node.id))
 
   private val namespaceIdentList = s.getNamespaceIdentList(symbol)
 
@@ -538,7 +539,7 @@ case class StructCppWriter(
     )
 
   private def writeIncludeDirectives = {
-    val Right(a) = UsedSymbols.defStructAnnotatedNode(s.a, aNode)
+    val a = Result.expectRight(UsedSymbols.defStructAnnotatedNode(s.a, aNode))
     s.writeIncludeDirectives(a.usedSymbolSet)
   }
 
@@ -910,4 +911,3 @@ case object StructCppWriter {
   case object Const extends ReturnMode
   case object NonConst extends ReturnMode
 }
-

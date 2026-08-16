@@ -184,10 +184,10 @@ case class CppWriterState(
           case iface: Symbol.Interface =>
             // Resolve the uses to pick up the header dependencies
             // implied by imported interfaces
-            val Right(a) = UsedSymbols.defInterfaceAnnotatedNode(
+            val a = Result.expectRight(UsedSymbols.defInterfaceAnnotatedNode(
               this.a,
               this.a.interfaceMap(iface).aNode,
-            )
+            ))
             a.usedSymbolSet.flatMap(getIncludeFiles).toList
           case _: Symbol.Constant => List()
           case _: Symbol.EnumConstant => List()

@@ -100,7 +100,7 @@ case class StateMachineAnalysis(
   def getStateSymbol(state: AstNode[Ast.QualIdent]):
   StateMachineSymbol.State = {
     val sym = useDefMap(state.id)
-    val stateSym @ StateMachineSymbol.State(_) = sym
+    val stateSym = Expect.subtype[StateMachineSymbol.State](sym)
     stateSym
   }
 
@@ -108,7 +108,7 @@ case class StateMachineAnalysis(
   def getActionSymbol(action: AstNode[Ast.Ident]):
   StateMachineSymbol.Action = {
     val sym = useDefMap(action.id)
-    val actionSym @ StateMachineSymbol.Action(_) = sym
+    val actionSym = Expect.subtype[StateMachineSymbol.Action](sym)
     actionSym
   }
 
@@ -116,7 +116,7 @@ case class StateMachineAnalysis(
   def getGuardSymbol(guard: AstNode[Ast.Ident]):
   StateMachineSymbol.Guard = {
     val sym = useDefMap(guard.id)
-    val guardSym @ StateMachineSymbol.Guard(_) = sym
+    val guardSym = Expect.subtype[StateMachineSymbol.Guard](sym)
     guardSym
   }
 
@@ -124,7 +124,7 @@ case class StateMachineAnalysis(
   def getSignalSymbol(signal: AstNode[Ast.Ident]):
   StateMachineSymbol.Signal = {
     val sym = useDefMap(signal.id)
-    val signalSym @ StateMachineSymbol.Signal(_) = sym
+    val signalSym = Expect.subtype[StateMachineSymbol.Signal](sym)
     signalSym
   }
 

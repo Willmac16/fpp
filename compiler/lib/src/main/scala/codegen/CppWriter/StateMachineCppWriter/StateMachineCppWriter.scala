@@ -2,6 +2,7 @@ package fpp.compiler.codegen
 
 import fpp.compiler.analysis._
 import fpp.compiler.ast._
+import fpp.compiler.util._
 
 /** Writes out C++ for state machine definitions */
 case class StateMachineCppWriter(
@@ -146,7 +147,7 @@ case class StateMachineCppWriter(
 
   private def getHppIncludes: CppDoc.Member = {
     val symbolHeaders = {
-      val Right(a) = UsedSymbols.defStateMachineAnnotatedNode(s.a, aNode)
+      val a = Result.expectRight(UsedSymbols.defStateMachineAnnotatedNode(s.a, aNode))
       s.writeIncludeDirectives(a.usedSymbolSet)
     }
     val userHeaders = List.concat(

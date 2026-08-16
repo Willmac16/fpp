@@ -1,5 +1,7 @@
 package fpp.compiler.codegen
 
+import fpp.compiler.util._
+
 /** A line of formatted output */
 object Line {
 
@@ -81,7 +83,7 @@ object Line {
       case (l, Nil) => l
       case (Nil, l) => l
       case (l1, hd2 :: tl2) => {
-        val hd1 :: tl1 = l1.reverse
+        val (hd1, tl1) = Expect.nonEmpty(l1.reverse, "line list")
         val part1 = tl1.reverse
         val part2 = join (sep) (hd1) (hd2)
         val part3 = mode match {

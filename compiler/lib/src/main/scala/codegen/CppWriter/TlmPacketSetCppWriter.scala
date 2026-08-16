@@ -2,6 +2,7 @@ package fpp.compiler.codegen
 
 import fpp.compiler.analysis._
 import fpp.compiler.ast._
+import fpp.compiler.util._
 
 /** Writes out C++ for struct definitions */
 case class TlmPacketSetCppWriter(
@@ -15,7 +16,7 @@ case class TlmPacketSetCppWriter(
 
   private val name = data.name
 
-  private val Some(t) = s.a.topology
+  private val t = Expect.some(s.a.topology, "topology")
 
   private val topologySymbol = Symbol.Topology(t.aNode)
 

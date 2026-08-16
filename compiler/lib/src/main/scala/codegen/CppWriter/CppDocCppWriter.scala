@@ -1,6 +1,7 @@
 package fpp.compiler.codegen
 
 import java.time.Year
+import fpp.compiler.util._
 
 /** Write a CppDoc to a cpp file */
 object CppDocCppWriter extends CppDocWriter {
@@ -18,7 +19,7 @@ object CppDocCppWriter extends CppDocWriter {
     else if (params.length == 1)
       lines(s"$prefix(" ++ paramString(params.head) ++ ")")
     else {
-      val head :: tail = params.reverse
+      val (head, tail) = Expect.nonEmpty(params.reverse, "function parameter list")
       val paramLines = (paramLine(head) :: tail.map(paramLineComma(_))).reverse
       line(s"$prefix(") :: (paramLines.map(_.indentIn(2 * indentIncrement)) :+ line(")"))
     }

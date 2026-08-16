@@ -99,8 +99,8 @@ case class TopComponents(
   ) = {
     val port = connection.from.port
     // Connections must be flattened at this point
-    val _ @ InterfaceInstance.InterfaceComponentInstance(componentInstance) =
-      port.interfaceInstance
+    val componentInstance =
+      Expect.subtype[InterfaceInstance.InterfaceComponentInstance](port.interfaceInstance).ci
     val portInstance = port.portInstance
     val component = componentInstance.component
     val portName = portInstance.getUnqualifiedName

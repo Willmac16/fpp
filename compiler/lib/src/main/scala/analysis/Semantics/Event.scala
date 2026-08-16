@@ -47,17 +47,17 @@ object Event {
       }
       def getEveryIntervalValue(every: AstNode[Ast.Expr]) = {
         val loc = Locations.get(every.id)
-        val Value.AnonStruct(intervalValue) = Analysis.convertValueToType(a.valueMap(every.id), Type.AnonStruct(
+        val intervalValue = Expect.subtype[Value.AnonStruct](Analysis.convertValueToType(a.valueMap(every.id), Type.AnonStruct(
           Map(
             ("seconds", Type.U32),
             ("useconds", Type.U32),
           )
-        ))
+        ))).members
         def getMember(member: String, maxValue: BigInt) = {
-          val Value.PrimitiveInt(v, Type.PrimitiveInt.U32) = Analysis.convertValueToType(
+          val v = Expect.subtype[Value.PrimitiveInt](Analysis.convertValueToType(
             intervalValue.get(member).get,
             Type.U32
-          )
+          )).value
 
           if v < 0 || v > maxValue
           then Left(

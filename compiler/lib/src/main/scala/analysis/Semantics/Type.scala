@@ -653,8 +653,9 @@ object Type {
           case _ =>
             val defaultStringSizeSymbol =
               a.frameworkDefinitions.constantMap("FW_FIXED_LENGTH_STRING_SIZE")
-            val Value.Integer(value) =
+            val value = Expect.subtype[Value.Integer](
               a.valueMap(defaultStringSizeSymbol.getNodeId)
+            ).value
             value
         }
         lengthSize + dataSize

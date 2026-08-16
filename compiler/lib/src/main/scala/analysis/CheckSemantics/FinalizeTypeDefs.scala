@@ -23,7 +23,7 @@ object FinalizeTypeDefs
       val node = aNode._2
       val data = node.data
       // Get the type of this node as an alias type A
-      val aliasType @ Type.AliasType(_, _) = a.typeMap(node.id)
+      val aliasType = Expect.subtype[Type.AliasType](a.typeMap(node.id))
       for {
         referencedType <- TypeVisitor.ty(a, aliasType.aliasType)
         aliasType1 <- Right(aliasType.copy(aliasType = referencedType))
@@ -41,7 +41,7 @@ object FinalizeTypeDefs
       val node = aNode._2
       val data = node.data
       // Get the type of this node as an array type A
-      val arrayType @ Type.Array(_, _, _, _) = a.typeMap(node.id)
+      val arrayType = Expect.subtype[Type.Array](a.typeMap(node.id))
       for {
         // Visit the element type of A, to update its members
         eltType <- TypeVisitor.ty(a, arrayType.anonArray.eltType)
@@ -59,12 +59,11 @@ object FinalizeTypeDefs
             val loc = Locations.get(id)
             for (_ <- Analysis.convertTypes(loc, v.getType -> arrayType))
               yield {
-                val array @ Value.Array(_, _) = Analysis.convertValueToType(v, arrayType)
-                array
+                Expect.subtype[Value.Array](Analysis.convertValueToType(v, arrayType))
               }
           }
           case None => {
-            val Some(anonArray) = arrayType.anonArray.getDefaultValue
+            val anonArray = Expect.some(arrayType.anonArray.getDefaultValue, "array default value")
             Right(Value.Array(anonArray, arrayType))
           }
         }
@@ -89,12 +88,12 @@ object FinalizeTypeDefs
     def visitor(a: Analysis, aNode: Ast.Annotated[AstNode[Ast.DefEnum]]) = {
       val (_, node, _) = aNode
       val data = node.data
-      val enumType @ Type.Enum(_, _, _) = a.typeMap(node.id)
+      val enumType = Expect.subtype[Type.Enum](a.typeMap(node.id))
       val default = data.default match {
         case Some(default) => a.valueMap(default.id)
         case None => a.valueMap(data.constants.head._2.id)
       }
-      val enumConstant @ Value.EnumConstant(_, _) = default
+      val enumConstant = Expect.subtype[Value.EnumConstant](default)
       val enumType1 = enumType.copy(default = Some(enumConstant))
       Right(a.assignType(node -> enumType1))
     }
@@ -107,13 +106,13 @@ object FinalizeTypeDefs
       val (_, node, _) = aNode
       val data = node.data
       // Get the type of this node as a struct type S
-      val structType @ Type.Struct(_, _, _, _, _) = a.typeMap(node.id)
+      val structType = Expect.subtype[Type.Struct](a.typeMap(node.id))
       for {
         // Visit the anonymous struct type of S, to update its members
         t <- TypeVisitor.ty(a, structType.anonStruct)
         // Update the anonymous struct type of S
         structType <- {
-          val anonStructType @ Type.AnonStruct(_) = t
+          val anonStructType = Expect.subtype[Type.AnonStruct](t)
           Right(structType.copy(anonStruct = anonStructType))
         }
         // Compute the default value
@@ -124,12 +123,11 @@ object FinalizeTypeDefs
             val loc = Locations.get(id)
             for (_ <- Analysis.convertTypes(loc, v.getType -> structType))
               yield {
-                val struct @ Value.Struct(_, _) = Analysis.convertValueToType(v, structType)
-                struct
+                Expect.subtype[Value.Struct](Analysis.convertValueToType(v, structType))
               }
           }
           case None => {
-            val Some(anonStruct) = structType.anonStruct.getDefaultValue
+            val anonStruct = Expect.some(structType.anonStruct.getDefaultValue, "struct default value")
             Right(Value.Struct(anonStruct, structType))
           }
         }
@@ -215,10 +213,10 @@ object FinalizeTypeDefs
       t.size match {
         case Some(e) => {
           val id = e.id
-          val Value.Integer(size) = Analysis.convertValueToType(
+          val size = Expect.subtype[Value.Integer](Analysis.convertValueToType(
             a.valueMap(id),
             Type.Integer
-          )
+          )).value
           if Type.String.isValidSize(size) then Right(t)
           else {
             val loc = Locations.get(id)

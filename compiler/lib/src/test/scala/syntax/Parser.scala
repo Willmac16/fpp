@@ -2,6 +2,7 @@ package fpp.compiler.test
 
 import fpp.compiler.ast._
 import fpp.compiler.syntax.{Lexer,Parser,TokenId}
+import fpp.compiler.util.{Expect,Result}
 import java.io.File
 import java.io.FileReader
 import org.scalatest.wordspec.AnyWordSpec
@@ -22,7 +23,9 @@ class ParserSpec extends AnyWordSpec {
 
       """
     )
-    val Right(Ast.TransUnit(List(tum))) = r
+    val Ast.TransUnit(members) = Result.expectRight(r)
+    val tum = Expect.some(members.headOption, "translation unit member")
+    assert(members.size == 1)
     val Ast.TUMember((pre, _, post)) = tum
     assert(pre == List("Line 1", "Line 2"))
     assert(post == List("Line 3", "Line 4"))

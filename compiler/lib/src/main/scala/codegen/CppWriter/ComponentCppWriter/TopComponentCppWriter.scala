@@ -154,8 +154,8 @@ case class TopComponentCppWriter (
     val toPortNum = topology.toPortNumberMap(connection)
     val functionName = {
       // Connections must be flattened at this point
-      val _ @ InterfaceInstance.InterfaceComponentInstance(toComponentInstance) =
-        toPort.interfaceInstance
+      val toComponentInstance =
+        Expect.subtype[InterfaceInstance.InterfaceComponentInstance](toPort.interfaceInstance).ci
       val componentInstanceName = CppWriter.writeQualifiedName(toComponentInstance.qualifiedName)
       val toPortName = toPortInstance.getUnqualifiedName
       val handlerBaseName = inputPortHandlerBaseName(toPortName)

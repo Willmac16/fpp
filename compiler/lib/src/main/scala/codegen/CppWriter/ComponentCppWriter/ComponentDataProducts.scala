@@ -119,7 +119,9 @@ case class ComponentDataProducts (
               |container.serializeHeader();
               |// Update the size of the buffer according to the data size
               |const FwSizeType packetSize = container.getPacketSize();
-              |Fw::Buffer buffer = container.getBuffer();
+              |// Take the packet buffer out of the container: it is on its way to the output port, and the
+              |// container must not be left holding a second reference to memory it has handed on
+              |Fw::Buffer buffer = Fw::move(container.getBuffer());
               |FW_ASSERT(packetSize <= buffer.getSize(), static_cast<FwAssertArgType>(packetSize),
               |    static_cast<FwAssertArgType>(buffer.getSize()));
               |buffer.setSize(static_cast<U32>(packetSize));
@@ -181,7 +183,7 @@ case class ComponentDataProducts (
                   |if (status == Fw::Success::SUCCESS) {
                   |  // Assign a fresh DpContainer into container
                   |  // This action clears out all the container state
-                  |  container = DpContainer(globalId, buffer, baseId);
+                  |  container = DpContainer(globalId, Fw::move(buffer), baseId);
                   |  container.setPriority(priority);
                   |}
                   |return status;""")
@@ -392,6 +394,34 @@ case class ComponentDataProducts (
           )
         ),
         List("Fw::DpContainer(id, buffer)", "m_baseId(baseId)"),
+        Nil
+      ),
+      constructorClassMember(
+        Some(
+          """|Constructor that takes the packet buffer
+             |
+             |A container built from a buffer that nobody else holds -- the one dpGet fetches from the buffer
+             |manager -- takes it, so that returning the packet is the container's job from here on. The
+             |constructor above aliases instead, for the caller that has only a reference to lend."""
+        ),
+        List(
+          CppDoc.Function.Param(
+            CppDoc.Type("FwDpIdType"),
+            "id",
+            Some("The container id")
+          ),
+          CppDoc.Function.Param(
+            CppDoc.Type("Fw::Buffer&&"),
+            "buffer",
+            Some("The packet buffer")
+          ),
+          CppDoc.Function.Param(
+            CppDoc.Type("FwDpIdType"),
+            "baseId",
+            Some("The component base id")
+          )
+        ),
+        List("Fw::DpContainer(id, Fw::move(buffer))", "m_baseId(baseId)"),
         Nil
       ),
       constructorClassMember(

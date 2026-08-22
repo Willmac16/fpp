@@ -262,7 +262,7 @@ void PassiveGuardedProductsGTestBase ::
     << "  Actual:   " << __index << "\n";
   const DpSend& e = this->productSendHistory->at(__index);
   // Set the history buffer output
-  historyBuffer = e.buffer;
+  historyBuffer = e.buffer.alias();
   // Check the container id
   ASSERT_EQ(e.id, id)
     << "\n"

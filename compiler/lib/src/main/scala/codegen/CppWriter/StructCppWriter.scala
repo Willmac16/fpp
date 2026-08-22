@@ -83,9 +83,17 @@ case class StructCppWriter(
       ll
     )
 
+  // Writes the value assigned to or used to initialize a struct member.
+  //
+  // A move-only buffer cannot be copied, so a struct that holds one aliases it instead: copying the struct produces
+  // a further reference to the same allocation rather than a second owner, which is the same rule the buffer itself
+  // follows. Whoever handed the buffer in stays answerable for returning it.
+  private def writeMemberValue(name: String, value: String): String =
+    if s.isMoveOnlyType(typeMembers(name)) then s"$value.alias()" else value
+
   // Writes a for loop to set the value of each array member
   private def writeArraySetters(getValue: String => String) =
-    arrayMemberNames.flatMap(n => this.writeArrayMemberSetter(n, getValue(n)))
+    arrayMemberNames.flatMap(n => this.writeArrayMemberSetter(n, writeMemberValue(n, getValue(n))))
 
   def write: CppDoc = {
     val includeGuard = s.includeGuardFromQualifiedName(symbol, fileName)
@@ -107,7 +115,7 @@ case class StructCppWriter(
       memberList.map(writeMemberAsParam),
       CppDoc.Type("void"),
       List.concat(
-        nonArrayMemberNames.map(n => line(s"this->m_$n = $n;")),
+        nonArrayMemberNames.map(n => line(s"this->m_$n = ${writeMemberValue(n, n)};")),
         if arrayMemberNames.isEmpty then Nil
         else Line.blank :: writeArraySetters(n => s"$n[i]"),
       )
@@ -445,9 +453,9 @@ case class StructCppWriter(
       List(writeMemberAsParam((n, tn))),
       CppDoc.Type("void"),
       if sizes.contains(n) then
-        iterateN(sizes(n), lines(s"this->m_$n[i] = $n[i];"))
+        iterateN(sizes(n), lines(s"this->m_$n[i] = ${writeMemberValue(n, s"$n[i]")};"))
       else
-        lines(s"this->m_$n = $n;")
+        lines(s"this->m_$n = ${writeMemberValue(n, n)};")
     )
 
   private def getSingleSetterFunctionMembers =
@@ -546,7 +554,7 @@ case class StructCppWriter(
     val bufferName = getBufferName(name)
     typeMembers(name).getUnderlyingType match {
       case _: Type.String => s"m_$name(m_$bufferName, sizeof m_$bufferName, $value)"
-      case _ => s"m_$name($value)"
+      case _ => s"m_$name(${writeMemberValue(name, value)})"
     }
   }
 

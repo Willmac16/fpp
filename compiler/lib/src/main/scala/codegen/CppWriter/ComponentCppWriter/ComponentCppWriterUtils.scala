@@ -544,6 +544,33 @@ abstract class ComponentCppWriterUtils(
       case _ => portParamTypeMap(p.getUnqualifiedName).map((n, tn, t) => (n, tn, Some(t)))
     }
 
+  /** Get the FPP formal parameters of a port instance
+   *
+   *  Unlike getPortParams, these carry the parameter kind, which decides whether the generated C++ parameter is a
+   *  mutable reference and so whether generated code is able to hand the argument on.
+   */
+  def getPortFormalParams(p: PortInstance): List[Ast.FormalParam] =
+    (p, p.getType) match {
+      case (_, Some(PortInstance.Type.DefPort(symbol))) =>
+        symbol.node._2.data.params.map(_._2.data)
+      case (PortInstance.Internal(node, _, _), _) =>
+        node._2.data.params.map(_._2.data)
+      case _ => Nil
+    }
+
+  /** The names of the port parameters whose ownership an async port call transfers to the callee
+   *
+   *  A move-only buffer passed by reference is the caller's to give up: an async call serializes it into the message
+   *  queue rather than passing it, so once the message is queued the far side is answerable for the buffer and the
+   *  caller must not still be holding it. A value parameter becomes a `const` C++ reference, which the generated
+   *  code cannot hand on, so only `ref` parameters qualify.
+   */
+  def getTransferredPortParamNames(p: PortInstance): Set[String] =
+    getPortFormalParams(p).filter(
+      param => param.kind == Ast.FormalParam.Ref &&
+        s.isMoveOnlyType(s.a.typeMap(param.typeName.id))
+    ).map(_.name).toSet
+
   /** Get port params as CppDoc Function Params */
   def getPortFunctionParams(p: PortInstance): List[CppDoc.Function.Param] =
     p.getType match {

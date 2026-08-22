@@ -225,9 +225,35 @@ case class CppWriterState(
     case _ => false
   }
 
+  /** Is t the move-only buffer type?
+   *
+   *  `Fw::Buffer` may be configured to be move-only, with its copy operations deleted and its destructor asserting
+   *  on a buffer that was never handed back. Generated code therefore cannot copy one: it has to alias the buffer
+   *  where it wants a further reference, move it where it means to hand it on, and give it up once it has been
+   *  serialized into a message queue.
+   *
+   *  The name is matched literally, which is the same bargain the C++ writer already makes for `Fw::StringBase`
+   *  and `Fw::SerialBufferBase`: FPP has no way to say that an abstract type is move-only, and `Fw.Buffer` is the
+   *  one type in the framework that is.
+   */
+  def isMoveOnlyType(t: Type): Boolean = t.getUnderlyingType match {
+    case at: Type.AbsType => writeSymbol(Symbol.AbsType(at.node)) == CppWriterState.moveOnlyTypeName
+    case _ => false
+  }
+
 }
 
 object CppWriterState {
+
+  /** The C++ name of the framework's move-only buffer type */
+  val moveOnlyTypeName = "Fw::Buffer"
+
+  /** The macro guarding the framework's strict buffer-ownership rules
+   *
+   *  Generated code that gives a buffer up is compiled only when this is on, so a build with it off keeps the
+   *  behavior it has always had.
+   */
+  val strictOwnershipMacroName = "FW_BUFFER_STRICT_OWNERSHIP"
 
 
   /** Construct a header string */

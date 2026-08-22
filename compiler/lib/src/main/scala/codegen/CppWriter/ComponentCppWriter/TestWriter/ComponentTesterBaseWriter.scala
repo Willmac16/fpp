@@ -592,7 +592,7 @@ case class ComponentTesterBaseWriter(
       getPortFunctionParams(productSendPort.get),
       CppDoc.Type("void"),
       lines(
-        """|DpSend e = { id, buffer };
+        """|DpSend e = { id, buffer.alias() };
            |this->productSendHistory->push_back(e);"""
       )
     )

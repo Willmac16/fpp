@@ -82,7 +82,10 @@ case class ComponentCppWriter (
   private def getHppIncludes: CppDoc.Member = {
     // Conditional headers
     val dpHeaders =
-      guardedList (hasDataProducts) (List("Fw/Dp/DpContainer.hpp"))
+      guardedList (hasDataProducts) (
+        // LanguageHelpers supplies Fw::move, which a container uses to take the buffer it is built from
+        List("Fw/Dp/DpContainer.hpp", "Fw/LanguageHelpers.hpp")
+      )
     val mutexHeaders =
       guardedList (hasGuardedInputPorts || hasGuardedCommands || hasParameters) (
         List("Os/Mutex.hpp")

@@ -223,6 +223,19 @@ class QueuedAsyncProductsTesterBase :
     struct DpSend {
       FwDpIdType id;
       Fw::Buffer buffer;
+
+      //! Assign a history entry, aliasing rather than copying the buffer
+      //!
+      //! History::push_back assigns entries over one another, and the implicit copy assignment is deleted
+      //! once the buffer cannot be copied. The entry records what the tester saw; the component under test
+      //! keeps its handle.
+      DpSend& operator=(const DpSend& other) {
+        if (this != &other) {
+          this->id = other.id;
+          this->buffer = other.buffer.alias();
+        }
+        return *this;
+      }
     };
 
   public:

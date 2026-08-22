@@ -28,6 +28,18 @@ PassiveTestComponentBase::DpContainer ::
 }
 
 PassiveTestComponentBase::DpContainer ::
+  DpContainer(
+      FwDpIdType id,
+      Fw::Buffer&& buffer,
+      FwDpIdType baseId
+  ) :
+    Fw::DpContainer(id, Fw::move(buffer)),
+    m_baseId(baseId)
+{
+
+}
+
+PassiveTestComponentBase::DpContainer ::
   DpContainer() :
     Fw::DpContainer(),
     m_baseId(0)
@@ -5469,7 +5481,9 @@ void PassiveTestComponentBase ::
   container.serializeHeader();
   // Update the size of the buffer according to the data size
   const FwSizeType packetSize = container.getPacketSize();
-  Fw::Buffer buffer = container.getBuffer();
+  // Take the packet buffer out of the container: it is on its way to the output port, and the
+  // container must not be left holding a second reference to memory it has handed on
+  Fw::Buffer buffer = Fw::move(container.getBuffer());
   FW_ASSERT(packetSize <= buffer.getSize(), static_cast<FwAssertArgType>(packetSize),
       static_cast<FwAssertArgType>(buffer.getSize()));
   buffer.setSize(static_cast<U32>(packetSize));

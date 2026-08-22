@@ -194,7 +194,7 @@ case class ComponentHistory(
             line(s"//! A history entry for port $portName") ::
             wrapInScope(
               s"struct $entryName {",
-              constructor ++ members,
+              constructor ++ writeEntryCopyAssignment(entryName, params) ++ members,
               "};"
             )
           }
@@ -229,7 +229,7 @@ case class ComponentHistory(
       val historyName = fromPortHistoryName(portName)
       List.concat(
         lines(s"$entryName _e;"),
-        getPortParams(p).map((n, _, _) => line(s"_e.$n = $n;")),
+        getPortParams(p).map((n, _, tOpt) => line(s"_e.$n = ${writeHistoryEntryValue(n, tOpt)};")),
         lines(s"this->$historyName->push_back(_e);")
       )
     }
@@ -255,6 +255,36 @@ case class ComponentHistory(
 
     clearHistory :: typedOutputPorts.map(pushEntryAndUpdateSize)
   }
+
+  // Writes the value stored in a history entry for a port argument.
+  //
+  // A history entry records what the tester saw, so a move-only buffer is aliased rather than taken: the component
+  // under test keeps its handle and stays answerable for the allocation, which is what the entry recorded before
+  // the buffer became move-only.
+  private def writeHistoryEntryValue(name: String, tOpt: Option[Type]): String =
+    if tOpt.exists(s.isMoveOnlyType) then s"$name.alias()" else name
+
+  // Writes a copy assignment operator for a history entry that holds a move-only member.
+  //
+  // History::push_back assigns the caller's entry over one already in the array, and the implicit copy assignment is
+  // deleted once a member cannot be copied. Entries are only ever assigned, never copy constructed -- History
+  // default constructs the array -- so an assignment operator is all that is needed. String members are assigned
+  // rather than rebound, which copies the characters into this entry's own buffer.
+  private def writeEntryCopyAssignment(
+    entryName: String,
+    params: List[(String, String, Type)]
+  ): List[Line] =
+    guardedList (params.exists((_, _, t) => s.isMoveOnlyType(t))) (
+      Line.blank ::
+      line("//! Assign a history entry, aliasing rather than copying any move-only member") ::
+      wrapInScope(
+        s"$entryName& operator=(const $entryName& other) {",
+        wrapInIf("this != &other", params.map((n, _, t) =>
+          line(s"this->$n = ${writeHistoryEntryValue(s"other.$n", Some(t))};")
+        )) ++ lines("return *this;"),
+        "}"
+      )
+    )
 
   private def getPortHistoryVariables: List[CppDoc.Class.Member] = {
     val portHistorySize = lines(
@@ -357,6 +387,19 @@ case class ComponentHistory(
         lines(
           """|FwDpIdType id;
              |Fw::Buffer buffer;
+             |
+             |//! Assign a history entry, aliasing rather than copying the buffer
+             |//!
+             |//! History::push_back assigns entries over one another, and the implicit copy assignment is deleted
+             |//! once the buffer cannot be copied. The entry records what the tester saw; the component under test
+             |//! keeps its handle.
+             |DpSend& operator=(const DpSend& other) {
+             |  if (this != &other) {
+             |    this->id = other.id;
+             |    this->buffer = other.buffer.alias();
+             |  }
+             |  return *this;
+             |}
              |"""
         ),
         "};"

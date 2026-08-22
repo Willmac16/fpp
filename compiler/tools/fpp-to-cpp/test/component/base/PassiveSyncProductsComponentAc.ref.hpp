@@ -19,6 +19,7 @@
 #include "Fw/Dp/DpResponsePortAc.hpp"
 #include "Fw/Dp/DpSendPortAc.hpp"
 #include "Fw/FPrimeBasicTypes.hpp"
+#include "Fw/LanguageHelpers.hpp"
 #include "Fw/Log/LogPortAc.hpp"
 #include "Fw/Log/LogTextPortAc.hpp"
 #if !FW_DIRECT_PORT_CALLS
@@ -185,6 +186,17 @@ class PassiveSyncProductsComponentBase :
         DpContainer(
             FwDpIdType id, //!< The container id
             const Fw::Buffer& buffer, //!< The packet buffer
+            FwDpIdType baseId //!< The component base id
+        );
+
+        //! Constructor that takes the packet buffer
+        //!
+        //! A container built from a buffer that nobody else holds -- the one dpGet fetches from the buffer
+        //! manager -- takes it, so that returning the packet is the container's job from here on. The
+        //! constructor above aliases instead, for the caller that has only a reference to lend.
+        DpContainer(
+            FwDpIdType id, //!< The container id
+            Fw::Buffer&& buffer, //!< The packet buffer
             FwDpIdType baseId //!< The component base id
         );
 

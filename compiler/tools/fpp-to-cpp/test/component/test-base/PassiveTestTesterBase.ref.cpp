@@ -4105,7 +4105,7 @@ void PassiveTestTesterBase ::
       const Fw::Buffer& buffer
   )
 {
-  DpSend e = { id, buffer };
+  DpSend e = { id, buffer.alias() };
   this->productSendHistory->push_back(e);
 }
 

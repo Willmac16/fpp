@@ -56,12 +56,38 @@ case class ComponentHistory(
            |      this->m_entries[this->m_numEntries++] = entry;
            |    }
            |
+           |    //! Push an item onto the history, taking it
+           |    //!
+           |    //! An entry holding a move-only member cannot be copied in, so it is moved in instead. The overload
+           |    //! above stays for entries that are copyable, and is not instantiated for those that are not.
+           |    void push_back(
+           |        T&& entry //!< The item to take
+           |    )
+           |    {
+           |      FW_ASSERT(this->m_numEntries < this->m_maxSize);
+           |      this->m_entries[this->m_numEntries++] = Fw::move(entry);
+           |    }
+           |
            |    //! Get an item at an index
            |    //!
            |    //! \return The item at index i
            |    const T& at(
            |        const U32 i //!< The index
            |    ) const
+           |    {
+           |      FW_ASSERT(i < this->m_numEntries);
+           |      return this->m_entries[i];
+           |    }
+           |
+           |    //! Get an item at an index for modification
+           |    //!
+           |    //! A test that has to hand a recorded buffer back needs to take it out of the entry, which the const
+           |    //! accessor above cannot allow.
+           |    //!
+           |    //! \return The item at index i
+           |    T& at(
+           |        const U32 i //!< The index
+           |    )
            |    {
            |      FW_ASSERT(i < this->m_numEntries);
            |      return this->m_entries[i];
@@ -230,7 +256,7 @@ case class ComponentHistory(
       List.concat(
         lines(s"$entryName _e;"),
         getPortParams(p).map((n, _, tOpt) => line(s"_e.$n = ${writeHistoryEntryValue(n, tOpt)};")),
-        lines(s"this->$historyName->push_back(_e);")
+        lines(s"this->$historyName->push_back(${writeHistoryEntryPush(p, "_e")});")
       )
     }
 
@@ -258,27 +284,42 @@ case class ComponentHistory(
 
   // Writes the value stored in a history entry for a port argument.
   //
-  // A history entry records what the tester saw, so a move-only buffer is aliased rather than taken: the component
-  // under test keeps its handle and stays answerable for the allocation, which is what the entry recorded before
-  // the buffer became move-only.
+  // The entry takes a move-only buffer rather than referring to it. There is no way to refer to one without taking
+  // it -- that is what strict ownership means -- so the tester, which is the downstream on this port, becomes
+  // answerable for the allocation exactly as a real downstream component would be, and the component under test is
+  // left holding nothing.
   private def writeHistoryEntryValue(name: String, tOpt: Option[Type]): String =
-    if tOpt.exists(s.isMoveOnlyType) then s"$name.alias()" else name
+    if tOpt.exists(s.isMoveOnlyType) then s"Fw::move($name)" else name
 
-  // Writes a copy assignment operator for a history entry that holds a move-only member.
+  // Writes the entry expression handed to History::push_back.
   //
-  // History::push_back assigns the caller's entry over one already in the array, and the implicit copy assignment is
-  // deleted once a member cannot be copied. Entries are only ever assigned, never copy constructed -- History
-  // default constructs the array -- so an assignment operator is all that is needed. String members are assigned
-  // rather than rebound, which copies the characters into this entry's own buffer.
+  // An entry holding a move-only member cannot be copied into the history, so it is moved in.
+  private def writeHistoryEntryPush(p: PortInstance, entryVar: String): String =
+    if getPortParams(p).exists((_, _, tOpt) => tOpt.exists(s.isMoveOnlyType))
+    then s"Fw::move($entryVar)"
+    else entryVar
+
+  // Writes the move assignment operator for a history entry that holds a move-only member, and deletes its copy.
+  //
+  // History::push_back assigns the caller's entry over one already in the array. An entry holding a buffer cannot be
+  // copied, so it is moved, and the copy is deleted rather than left implicitly so -- an entry that could be copied
+  // would be a second reference to the recorded buffer, which is the thing strict ownership exists to prevent.
+  // Entries are only ever assigned, never constructed from another entry, because History default constructs its
+  // array. String members are assigned rather than rebound, which copies the characters into this entry's own
+  // buffer.
   private def writeEntryCopyAssignment(
     entryName: String,
     params: List[(String, String, Type)]
   ): List[Line] =
     guardedList (params.exists((_, _, t) => s.isMoveOnlyType(t))) (
       Line.blank ::
-      line("//! Assign a history entry, aliasing rather than copying any move-only member") ::
+      line("//! A history entry holding a buffer is taken, never copied") ::
+      line(s"$entryName(const $entryName&) = delete;") ::
+      line(s"$entryName& operator=(const $entryName&) = delete;") ::
+      Line.blank ::
+      line("//! Take a history entry, moving any move-only member out of the source") ::
       wrapInScope(
-        s"$entryName& operator=(const $entryName& other) {",
+        s"$entryName& operator=($entryName&& other) {",
         wrapInIf("this != &other", params.map((n, _, t) =>
           line(s"this->$n = ${writeHistoryEntryValue(s"other.$n", Some(t))};")
         )) ++ lines("return *this;"),
@@ -388,15 +429,27 @@ case class ComponentHistory(
           """|FwDpIdType id;
              |Fw::Buffer buffer;
              |
-             |//! Assign a history entry, aliasing rather than copying the buffer
+             |//! Default constructor, declared because deleting the copy below would otherwise suppress it and
+             |//! History allocates its array of entries
+             |DpSend() : id(0), buffer() {}
+             |
+             |//! Construct an entry over the buffer it records, taking it
+             |DpSend(FwDpIdType entryId, Fw::Buffer&& entryBuffer) :
+             |  id(entryId), buffer(Fw::move(entryBuffer))
+             |{}
+             |
+             |//! A history entry holding a buffer is taken, never copied
+             |DpSend(const DpSend&) = delete;
+             |DpSend& operator=(const DpSend&) = delete;
+             |
+             |//! Take a history entry, moving the buffer out of the source
              |//!
-             |//! History::push_back assigns entries over one another, and the implicit copy assignment is deleted
-             |//! once the buffer cannot be copied. The entry records what the tester saw; the component under test
-             |//! keeps its handle.
-             |DpSend& operator=(const DpSend& other) {
+             |//! History::push_back assigns entries over one another, and a buffer cannot be copied in. The tester
+             |//! is the downstream on this port, so it becomes answerable for the allocation.
+             |DpSend& operator=(DpSend&& other) {
              |  if (this != &other) {
              |    this->id = other.id;
-             |    this->buffer = other.buffer.alias();
+             |    this->buffer = Fw::move(other.buffer);
              |  }
              |  return *this;
              |}

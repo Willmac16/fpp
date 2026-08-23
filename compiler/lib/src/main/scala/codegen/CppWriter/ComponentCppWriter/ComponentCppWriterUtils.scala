@@ -544,6 +544,22 @@ abstract class ComponentCppWriterUtils(
       case _ => portParamTypeMap(p.getUnqualifiedName).map((n, tn, t) => (n, tn, Some(t)))
     }
 
+  /** Does this component have a port that carries a move-only type?
+   *
+   *  Such a component's generated code says Fw::move, or marks a buffer-returning function so that discarding the
+   *  result is a compile error, and both of those need Fw/LanguageHelpers.hpp.
+   */
+  val hasMoveOnlyPortTypes: Boolean = {
+    val paramTypes = portParamTypeMap.values.flatten.exists((_, _, t) => s.isMoveOnlyType(t))
+    val returnTypes = List(
+      specialInputPorts,
+      typedInputPorts,
+      specialOutputPorts,
+      typedOutputPorts
+    ).flatten.exists(p => getPortReturnTypeSemantic(p).exists(s.isMoveOnlyType))
+    paramTypes || returnTypes
+  }
+
   /** Get the FPP formal parameters of a port instance
    *
    *  Unlike getPortParams, these carry the parameter kind, which decides whether the generated C++ parameter is a
@@ -621,9 +637,20 @@ abstract class ComponentCppWriterUtils(
   def getPortReturnTypeAsString(pi: PortInstance): String =
     getPortReturnTypeAsStringOption(pi).getOrElse("void")
 
-  /** Get a return type of a port as a CppDoc type */
-  def getPortReturnTypeAsCppDocType(p: PortInstance): CppDoc.Type =
-    CppDoc.Type(getPortReturnTypeAsString(p))
+  /** Get a return type of a port as a CppDoc type
+   *
+   *  A port that hands back a move-only buffer is marked so that discarding the result is a compile error. Whether
+   *  a buffer someone bound is still owned when its scope ends cannot be checked at compile time, but a buffer the
+   *  caller never bound at all can be, and dropping a freshly allocated one on the floor is a leak either way. The
+   *  mark goes on the declaration only, which is where the caller sees it.
+   */
+  def getPortReturnTypeAsCppDocType(p: PortInstance): CppDoc.Type = {
+    val typeName = getPortReturnTypeAsString(p)
+    val returnsMoveOnly = getPortReturnTypeSemantic(p).exists(s.isMoveOnlyType)
+    if returnsMoveOnly
+    then CppDoc.Type(s"FW_WARN_UNUSED $typeName", Some(typeName))
+    else CppDoc.Type(typeName)
+  }
 
   def invokerReturnsNonVoid(p: PortInstance): Boolean =
     getInvokerReturnTypeAsString(p) != "void"
@@ -962,8 +989,15 @@ abstract class ComponentCppWriterUtils(
     )
 
   // Gets an invoker return type as a CppDoc Type
-  def getInvokerReturnType(p: PortInstance): CppDoc.Type =
-    CppDoc.Type(getInvokerReturnTypeAsString(p))
+  //
+  // An invoker that hands back a move-only buffer is marked so that discarding the result is a compile error. This
+  // is the function components actually call to get a buffer, so it is the one worth marking.
+  def getInvokerReturnType(p: PortInstance): CppDoc.Type = {
+    val typeName = getInvokerReturnTypeAsString(p)
+    if getPortReturnTypeSemantic(p).exists(s.isMoveOnlyType)
+    then CppDoc.Type(s"FW_WARN_UNUSED $typeName", Some(typeName))
+    else CppDoc.Type(typeName)
+  }
 
   def getInvokerReturnTypeAsString(p: PortInstance): String =
     p.getType.get match {

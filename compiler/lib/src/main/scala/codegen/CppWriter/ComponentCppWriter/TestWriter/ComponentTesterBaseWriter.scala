@@ -57,6 +57,8 @@ case class ComponentTesterBaseWriter(
     val standardHeaders = List(
       s.getIncludePath(componentSymbol, componentFileName),
       "Fw/Comp/PassiveComponentBase.hpp",
+      // A history entry takes a move-only port argument with Fw::move
+      "Fw/LanguageHelpers.hpp",
       "Fw/Port/InputSerializePort.hpp",
       "Fw/Types/Assert.hpp",
       "Fw/Types/ExternalString.hpp"
@@ -592,8 +594,8 @@ case class ComponentTesterBaseWriter(
       getPortFunctionParams(productSendPort.get),
       CppDoc.Type("void"),
       lines(
-        """|DpSend e = { id, buffer.alias() };
-           |this->productSendHistory->push_back(e);"""
+        """|DpSend e(id, Fw::move(buffer));
+           |this->productSendHistory->push_back(Fw::move(e));"""
       )
     )
     lazy val handleProductSend = functionClassMember(

@@ -231,9 +231,9 @@ case class ComponentDataProducts (
             Some("The container id")
           ),
           CppDoc.Function.Param(
-            CppDoc.Type("const Fw::Buffer&"),
+            CppDoc.Type("Fw::Buffer&"),
             "buffer",
-            Some("The buffer")
+            Some("The buffer, taken by the container built over it")
           ),
           CppDoc.Function.Param(
             CppDoc.Type("const Fw::Success&"),
@@ -247,7 +247,7 @@ case class ComponentDataProducts (
             lines(
               """|DpContainer container;
                  |if (status == Fw::Success::SUCCESS) {
-                 |  container = DpContainer(id, buffer, this->getIdBase());
+                 |  container = DpContainer(id, Fw::move(buffer), this->getIdBase());
                  |}
                  |// Convert global id to local id
                  |const FwDpIdType idBase = this->getIdBase();
@@ -375,34 +375,12 @@ case class ComponentDataProducts (
     private def getConstructionMembers = List(
       linesClassMember(CppDocHppWriter.writeAccessTag("public")),
       constructorClassMember(
-        Some("Constructor with custom initialization"),
-        List(
-          CppDoc.Function.Param(
-            CppDoc.Type("FwDpIdType"),
-            "id",
-            Some("The container id")
-          ),
-          CppDoc.Function.Param(
-            CppDoc.Type("const Fw::Buffer&"),
-            "buffer",
-            Some("The packet buffer")
-          ),
-          CppDoc.Function.Param(
-            CppDoc.Type("FwDpIdType"),
-            "baseId",
-            Some("The component base id")
-          )
-        ),
-        List("Fw::DpContainer(id, buffer)", "m_baseId(baseId)"),
-        Nil
-      ),
-      constructorClassMember(
         Some(
           """|Constructor that takes the packet buffer
              |
-             |A container built from a buffer that nobody else holds -- the one dpGet fetches from the buffer
-             |manager -- takes it, so that returning the packet is the container's job from here on. The
-             |constructor above aliases instead, for the caller that has only a reference to lend."""
+             |A container takes the buffer it is built over: returning the packet is the container's job from here
+             |on, and the caller is left holding nothing. There is no constructor that refers to a buffer without
+             |taking it, because a second reference to managed memory is exactly what must not exist."""
         ),
         List(
           CppDoc.Function.Param(

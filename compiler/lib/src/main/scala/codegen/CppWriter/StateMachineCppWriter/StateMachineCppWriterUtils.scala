@@ -101,6 +101,9 @@ abstract class StateMachineCppWriterUtils(
     val typeName = typeCppWriter.write(t)
     val paramTypeName = if t.isPrimitive
                         then typeName
+                        // A value carrying a move-only buffer is passed mutably: an action that means to keep it has
+                        // to take it, and there is no way to refer to a buffer without taking it
+                        else if s.isMoveOnlyType(t) then s"$typeName&"
                         else s"const $typeName&"
     CppDoc.Type(paramTypeName)
   }

@@ -388,7 +388,7 @@ case class ComponentInputPorts(
     )
   }
 
-  // Writes the lines that give up the caller's claim on any buffer whose ownership this call transfers.
+  // Writes the lines that empty the caller's handle on any buffer whose ownership this call transfers.
   //
   // These come last, after the queue-full handling and the send assertion, because only a message that actually
   // reached the queue transfers anything. On the drop path the handler has already returned, and on the hook path the
@@ -397,16 +397,14 @@ case class ComponentInputPorts(
   private def writeTransferredParamRelinquishLines(p: PortInstance): List[Line] = {
     val transferred = getTransferredPortParamNames(p).toList.sorted
     guardedList (transferred.nonEmpty) (
-      lines(s"#if ${CppWriterState.strictOwnershipMacroName}") ++
       transferred.flatMap(
         n => lines(
-          s"""|// The message is on the queue, so $n now belongs to the far side of it. Giving up the caller's
-              |// claim here is what keeps a buffer from being owned twice; the queue carries the ownership state
+          s"""|// The message is on the queue, so $n now belongs to the far side of it. Emptying the caller's handle
+              |// here is what keeps a buffer from being referred to twice; the queue carries the ownership state
               |// along with the rest of the descriptor.
               |$n = ${CppWriterState.moveOnlyTypeName}();"""
         )
-      ) ++
-      lines("#endif")
+      )
     )
   }
 

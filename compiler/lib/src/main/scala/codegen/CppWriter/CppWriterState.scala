@@ -234,10 +234,14 @@ case class CppWriterState(
    *
    *  The name is matched literally, which is the same bargain the C++ writer already makes for `Fw::StringBase`
    *  and `Fw::SerialBufferBase`: FPP has no way to say that an abstract type is move-only, and `Fw.Buffer` is the
-   *  one type in the framework that is.
+   *  one type in the framework that is. Types built out of it are move-only in turn.
    */
   def isMoveOnlyType(t: Type): Boolean = t.getUnderlyingType match {
     case at: Type.AbsType => writeSymbol(Symbol.AbsType(at.node)) == CppWriterState.moveOnlyTypeName
+    // Move-only-ness travels through composition: a struct or array that holds a buffer cannot be copied either,
+    // because copying it would have to copy the buffer. FPP forbids recursive types, so this terminates.
+    case st: Type.Struct => st.anonStruct.members.values.exists(isMoveOnlyType)
+    case at: Type.Array => isMoveOnlyType(at.anonArray.eltType)
     case _ => false
   }
 
@@ -247,13 +251,6 @@ object CppWriterState {
 
   /** The C++ name of the framework's move-only buffer type */
   val moveOnlyTypeName = "Fw::Buffer"
-
-  /** The macro guarding the framework's strict buffer-ownership rules
-   *
-   *  Generated code that gives a buffer up is compiled only when this is on, so a build with it off keeps the
-   *  behavior it has always had.
-   */
-  val strictOwnershipMacroName = "FW_BUFFER_STRICT_OWNERSHIP"
 
 
   /** Construct a header string */

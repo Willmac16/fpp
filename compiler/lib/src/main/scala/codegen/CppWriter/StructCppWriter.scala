@@ -85,11 +85,14 @@ case class StructCppWriter(
 
   // Writes the value assigned to or used to initialize a struct member.
   //
-  // A move-only buffer cannot be copied, so a struct that holds one aliases it instead: copying the struct produces
-  // a further reference to the same allocation rather than a second owner, which is the same rule the buffer itself
-  // follows. Whoever handed the buffer in stays answerable for returning it.
+  // A move-only member is taken, not referred to: strict ownership offers no way to hold a second reference to
+  // managed memory, so a struct that holds a buffer holds the buffer, and whoever handed it over is left with
+  // nothing. That is also why such a struct is itself move-only -- see getCopyOrMoveMembers.
   private def writeMemberValue(name: String, value: String): String =
-    if s.isMoveOnlyType(typeMembers(name)) then s"$value.alias()" else value
+    if s.isMoveOnlyType(typeMembers(name)) then s"Fw::move($value)" else value
+
+  // Does this struct hold a member that cannot be copied?
+  private val isMoveOnlyStruct = memberNames.exists(n => s.isMoveOnlyType(typeMembers(n)))
 
   // Writes a for loop to set the value of each array member
   private def writeArraySetters(getValue: String => String) =
@@ -148,6 +151,9 @@ case class StructCppWriter(
         // Write the member constructor if and only if there are members
         guardedList (!memberList.isEmpty) (List(getMemberConstructor)),
         List(getCopyConstructor),
+        // A struct that holds a buffer is taken rather than copied, so it needs a move constructor in place of the
+        // copy constructor deleted above
+        guardedList (isMoveOnlyStruct) (List(getMoveConstructor)),
         // Write the scalar array constructor if and only if there are
         // array members
         guardedList (!sizes.isEmpty) (List(getScalarArrayConstructor))
@@ -157,11 +163,15 @@ case class StructCppWriter(
 
   private def getCopyAssignmentOperator =
     functionClassMember(
-      Some("Copy assignment operator"),
+      Some(
+        if isMoveOnlyStruct
+        then "Move assignment operator, taking the source object's members"
+        else "Copy assignment operator"
+      ),
       "operator=",
       List(
         CppDoc.Function.Param(
-          CppDoc.Type(s"const $structName&"),
+          CppDoc.Type(if isMoveOnlyStruct then s"$structName&&" else s"const $structName&"),
           "obj",
           Some("The source object")
         ),
@@ -175,26 +185,52 @@ case class StructCppWriter(
       else List.concat(
         wrapInIf("this == &obj", lines("return *this;")),
         Line.blank :: lines(
-          s"set(${memberNames.map(n => s"obj.m_$n").mkString(", ")});"
+          s"set(${memberNames.map(n => writeMemberValue(n, s"obj.m_$n")).mkString(", ")});"
         ),
         lines("return *this;"),
       )
     )
 
-  private def getCopyConstructor = constructorClassMember(
-    Some("Copy constructor"),
+  private def getCopyConstructor =
+    if isMoveOnlyStruct then
+      linesClassMember(
+        Line.blank ::
+        lines(
+          s"""|//! Copy construction is deleted: this type holds a buffer, and copying it would be a second
+              |//! reference to memory that only one object may refer to
+              |$structName(const $structName& obj) = delete;
+              |
+              |//! Copy assignment is deleted for the same reason
+              |$structName& operator=(const $structName& obj) = delete;"""
+        )
+      )
+    else constructorClassMember(
+      Some("Copy constructor"),
+      List(
+        CppDoc.Function.Param(
+          CppDoc.Type(s"const $structName&"),
+          "obj",
+          Some("The source object")
+        )
+      ),
+      writeInitializerList(n => s"obj.m_$n"),
+      List.concat(
+        guardedList (memberList.isEmpty) (lines("(void) obj;")),
+        writeArraySetters(n => s"obj.m_$n[i]")
+      )
+    )
+
+  private def getMoveConstructor = constructorClassMember(
+    Some("Move constructor, taking the source object's members"),
     List(
       CppDoc.Function.Param(
-        CppDoc.Type(s"const $structName&"),
+        CppDoc.Type(s"$structName&&"),
         "obj",
-        Some("The source object")
+        Some("The source object, left empty")
       )
     ),
     writeInitializerList(n => s"obj.m_$n"),
-    List.concat(
-      guardedList (memberList.isEmpty) (lines("(void) obj;")),
-      writeArraySetters(n => s"obj.m_$n[i]")
-    )
+    writeArraySetters(n => s"obj.m_$n[i]")
   )
 
   private def getCppIncludes: CppDoc.Member = {
@@ -293,12 +329,16 @@ case class StructCppWriter(
   private def getGetterName(n: String) = s"get_$n"
 
   private def getHppIncludes: CppDoc.Member = {
-    val userHeaders = List(
-      "Fw/FPrimeBasicTypes.hpp",
-      "Fw/Types/ExternalString.hpp",
-      "Fw/Types/Serializable.hpp",
-      "Fw/Types/String.hpp"
-    ).map(CppWriter.headerString)
+    val userHeaders = List.concat(
+      List(
+        "Fw/FPrimeBasicTypes.hpp",
+        "Fw/Types/ExternalString.hpp",
+        "Fw/Types/Serializable.hpp",
+        "Fw/Types/String.hpp"
+      ),
+      // A struct holding a buffer takes it with Fw::move
+      guardedList (isMoveOnlyStruct) (List("Fw/LanguageHelpers.hpp"))
+    ).sorted.map(CppWriter.headerString)
     val symbolHeaders = writeIncludeDirectives
     val headers = userHeaders ++ symbolHeaders
     linesMember(addBlankPrefix(headers.sorted.map(line)))
@@ -579,6 +619,8 @@ case class StructCppWriter(
         typeMembers(n).getUnderlyingType match {
           case _: Type.Enum => s"$tn::T"
           case _: Type.String => "const Fw::StringBase&"
+          // A move-only member cannot be copied out of a const reference, so the caller hands it over instead
+          case t if s.isMoveOnlyType(t) => s"$tn&&"
           case t => if s.isPrimitive(t, tn) then tn else s"const $tn&"
         }
       ),

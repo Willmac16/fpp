@@ -82,10 +82,11 @@ case class ComponentCppWriter (
   private def getHppIncludes: CppDoc.Member = {
     // Conditional headers
     val dpHeaders =
-      guardedList (hasDataProducts) (
-        // LanguageHelpers supplies Fw::move, which a container uses to take the buffer it is built from
-        List("Fw/Dp/DpContainer.hpp", "Fw/LanguageHelpers.hpp")
-      )
+      guardedList (hasDataProducts) (List("Fw/Dp/DpContainer.hpp"))
+    // LanguageHelpers supplies Fw::move, which a container uses to take the buffer it is built from, and
+    // FW_WARN_UNUSED, which marks a buffer the caller must not discard
+    val moveHeaders =
+      guardedList (hasDataProducts || hasMoveOnlyPortTypes) (List("Fw/LanguageHelpers.hpp"))
     val mutexHeaders =
       guardedList (hasGuardedInputPorts || hasGuardedCommands || hasParameters) (
         List("Os/Mutex.hpp")
@@ -108,6 +109,7 @@ case class ComponentCppWriter (
       )).map(CppWriter.systemHeaderString).sortBy(_.toLowerCase()).map(line)
     val userHeaders = {
       val standardHeaders = List.concat(
+        moveHeaders,
         List(
           "Fw/FPrimeBasicTypes.hpp",
           "Fw/Port/InputSerializePort.hpp",

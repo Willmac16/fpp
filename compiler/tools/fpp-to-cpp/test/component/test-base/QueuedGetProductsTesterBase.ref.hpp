@@ -11,6 +11,7 @@
 
 #include "Fw/Comp/PassiveComponentBase.hpp"
 #include "Fw/Dp/test/util/DpContainerHeader.hpp"
+#include "Fw/LanguageHelpers.hpp"
 #include "Fw/Port/InputSerializePort.hpp"
 #include "Fw/Types/Assert.hpp"
 #include "Fw/Types/ExternalString.hpp"
@@ -70,12 +71,38 @@ class QueuedGetProductsTesterBase :
           this->m_entries[this->m_numEntries++] = entry;
         }
 
+        //! Push an item onto the history, taking it
+        //!
+        //! An entry holding a move-only member cannot be copied in, so it is moved in instead. The overload
+        //! above stays for entries that are copyable, and is not instantiated for those that are not.
+        void push_back(
+            T&& entry //!< The item to take
+        )
+        {
+          FW_ASSERT(this->m_numEntries < this->m_maxSize);
+          this->m_entries[this->m_numEntries++] = Fw::move(entry);
+        }
+
         //! Get an item at an index
         //!
         //! \return The item at index i
         const T& at(
             const U32 i //!< The index
         ) const
+        {
+          FW_ASSERT(i < this->m_numEntries);
+          return this->m_entries[i];
+        }
+
+        //! Get an item at an index for modification
+        //!
+        //! A test that has to hand a recorded buffer back needs to take it out of the entry, which the const
+        //! accessor above cannot allow.
+        //!
+        //! \return The item at index i
+        T& at(
+            const U32 i //!< The index
+        )
         {
           FW_ASSERT(i < this->m_numEntries);
           return this->m_entries[i];
@@ -224,15 +251,27 @@ class QueuedGetProductsTesterBase :
       FwDpIdType id;
       Fw::Buffer buffer;
 
-      //! Assign a history entry, aliasing rather than copying the buffer
+      //! Default constructor, declared because deleting the copy below would otherwise suppress it and
+      //! History allocates its array of entries
+      DpSend() : id(0), buffer() {}
+
+      //! Construct an entry over the buffer it records, taking it
+      DpSend(FwDpIdType entryId, Fw::Buffer&& entryBuffer) :
+        id(entryId), buffer(Fw::move(entryBuffer))
+      {}
+
+      //! A history entry holding a buffer is taken, never copied
+      DpSend(const DpSend&) = delete;
+      DpSend& operator=(const DpSend&) = delete;
+
+      //! Take a history entry, moving the buffer out of the source
       //!
-      //! History::push_back assigns entries over one another, and the implicit copy assignment is deleted
-      //! once the buffer cannot be copied. The entry records what the tester saw; the component under test
-      //! keeps its handle.
-      DpSend& operator=(const DpSend& other) {
+      //! History::push_back assigns entries over one another, and a buffer cannot be copied in. The tester
+      //! is the downstream on this port, so it becomes answerable for the allocation.
+      DpSend& operator=(DpSend&& other) {
         if (this != &other) {
           this->id = other.id;
-          this->buffer = other.buffer.alias();
+          this->buffer = Fw::move(other.buffer);
         }
         return *this;
       }

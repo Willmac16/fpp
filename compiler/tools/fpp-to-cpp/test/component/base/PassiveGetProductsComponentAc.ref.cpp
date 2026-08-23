@@ -18,18 +18,6 @@
 PassiveGetProductsComponentBase::DpContainer ::
   DpContainer(
       FwDpIdType id,
-      const Fw::Buffer& buffer,
-      FwDpIdType baseId
-  ) :
-    Fw::DpContainer(id, buffer),
-    m_baseId(baseId)
-{
-
-}
-
-PassiveGetProductsComponentBase::DpContainer ::
-  DpContainer(
-      FwDpIdType id,
       Fw::Buffer&& buffer,
       FwDpIdType baseId
   ) :

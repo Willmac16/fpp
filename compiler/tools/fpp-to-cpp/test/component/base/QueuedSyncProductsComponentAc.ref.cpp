@@ -76,18 +76,6 @@ namespace {
 QueuedSyncProductsComponentBase::DpContainer ::
   DpContainer(
       FwDpIdType id,
-      const Fw::Buffer& buffer,
-      FwDpIdType baseId
-  ) :
-    Fw::DpContainer(id, buffer),
-    m_baseId(baseId)
-{
-
-}
-
-QueuedSyncProductsComponentBase::DpContainer ::
-  DpContainer(
-      FwDpIdType id,
       Fw::Buffer&& buffer,
       FwDpIdType baseId
   ) :
@@ -4517,13 +4505,13 @@ void QueuedSyncProductsComponentBase ::
   productRecvIn_handler(
       const FwIndexType portNum,
       FwDpIdType id,
-      const Fw::Buffer& buffer,
+      Fw::Buffer& buffer,
       const Fw::Success& status
   )
 {
   DpContainer container;
   if (status == Fw::Success::SUCCESS) {
-    container = DpContainer(id, buffer, this->getIdBase());
+    container = DpContainer(id, Fw::move(buffer), this->getIdBase());
   }
   // Convert global id to local id
   const FwDpIdType idBase = this->getIdBase();

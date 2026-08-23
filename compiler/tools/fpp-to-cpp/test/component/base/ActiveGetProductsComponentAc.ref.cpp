@@ -76,18 +76,6 @@ namespace {
 ActiveGetProductsComponentBase::DpContainer ::
   DpContainer(
       FwDpIdType id,
-      const Fw::Buffer& buffer,
-      FwDpIdType baseId
-  ) :
-    Fw::DpContainer(id, buffer),
-    m_baseId(baseId)
-{
-
-}
-
-ActiveGetProductsComponentBase::DpContainer ::
-  DpContainer(
-      FwDpIdType id,
       Fw::Buffer&& buffer,
       FwDpIdType baseId
   ) :

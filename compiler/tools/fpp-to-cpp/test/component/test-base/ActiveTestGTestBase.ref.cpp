@@ -1149,9 +1149,9 @@ namespace M {
       << "  Expected: Less than size of product send history ("
       << this->productSendHistory->size() << ")\n"
       << "  Actual:   " << __index << "\n";
-    const DpSend& e = this->productSendHistory->at(__index);
+    DpSend& e = this->productSendHistory->at(__index);
     // Set the history buffer output
-    historyBuffer = e.buffer.alias();
+    historyBuffer = Fw::move(e.buffer);
     // Check the container id
     ASSERT_EQ(e.id, id)
       << "\n"

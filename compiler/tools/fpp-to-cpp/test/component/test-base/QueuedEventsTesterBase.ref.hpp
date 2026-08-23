@@ -10,6 +10,7 @@
 #include <cstdio>
 
 #include "Fw/Comp/PassiveComponentBase.hpp"
+#include "Fw/LanguageHelpers.hpp"
 #include "Fw/Port/InputSerializePort.hpp"
 #include "Fw/Types/Assert.hpp"
 #include "Fw/Types/ExternalString.hpp"
@@ -69,12 +70,38 @@ class QueuedEventsTesterBase :
           this->m_entries[this->m_numEntries++] = entry;
         }
 
+        //! Push an item onto the history, taking it
+        //!
+        //! An entry holding a move-only member cannot be copied in, so it is moved in instead. The overload
+        //! above stays for entries that are copyable, and is not instantiated for those that are not.
+        void push_back(
+            T&& entry //!< The item to take
+        )
+        {
+          FW_ASSERT(this->m_numEntries < this->m_maxSize);
+          this->m_entries[this->m_numEntries++] = Fw::move(entry);
+        }
+
         //! Get an item at an index
         //!
         //! \return The item at index i
         const T& at(
             const U32 i //!< The index
         ) const
+        {
+          FW_ASSERT(i < this->m_numEntries);
+          return this->m_entries[i];
+        }
+
+        //! Get an item at an index for modification
+        //!
+        //! A test that has to hand a recorded buffer back needs to take it out of the entry, which the const
+        //! accessor above cannot allow.
+        //!
+        //! \return The item at index i
+        T& at(
+            const U32 i //!< The index
+        )
         {
           FW_ASSERT(i < this->m_numEntries);
           return this->m_entries[i];

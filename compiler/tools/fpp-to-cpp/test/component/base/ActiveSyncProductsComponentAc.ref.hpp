@@ -188,18 +188,11 @@ class ActiveSyncProductsComponentBase :
 
       public:
 
-        //! Constructor with custom initialization
-        DpContainer(
-            FwDpIdType id, //!< The container id
-            const Fw::Buffer& buffer, //!< The packet buffer
-            FwDpIdType baseId //!< The component base id
-        );
-
         //! Constructor that takes the packet buffer
         //!
-        //! A container built from a buffer that nobody else holds -- the one dpGet fetches from the buffer
-        //! manager -- takes it, so that returning the packet is the container's job from here on. The
-        //! constructor above aliases instead, for the caller that has only a reference to lend.
+        //! A container takes the buffer it is built over: returning the packet is the container's job from here
+        //! on, and the caller is left holding nothing. There is no constructor that refers to a buffer without
+        //! taking it, because a second reference to managed memory is exactly what must not exist.
         DpContainer(
             FwDpIdType id, //!< The container id
             Fw::Buffer&& buffer, //!< The packet buffer
@@ -2080,7 +2073,7 @@ class ActiveSyncProductsComponentBase :
     void productRecvIn_handler(
         const FwIndexType portNum, //!< The port number
         FwDpIdType id, //!< The container id
-        const Fw::Buffer& buffer, //!< The buffer
+        Fw::Buffer& buffer, //!< The buffer, taken by the container built over it
         const Fw::Success& status //!< The buffer status
     );
 

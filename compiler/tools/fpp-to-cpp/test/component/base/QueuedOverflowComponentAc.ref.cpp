@@ -2707,7 +2707,7 @@ void QueuedOverflowComponentBase ::
   productRecvInHook_handler(
       const FwIndexType portNum,
       FwDpIdType id,
-      const Fw::Buffer& buffer,
+      Fw::Buffer& buffer,
       const Fw::Success& status
   )
 {

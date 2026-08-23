@@ -12,6 +12,7 @@
 #include "Fw/Dp/DpResponsePortAc.hpp"
 #include "Fw/Dp/DpSendPortAc.hpp"
 #include "Fw/FPrimeBasicTypes.hpp"
+#include "Fw/LanguageHelpers.hpp"
 #if !FW_DIRECT_PORT_CALLS
 #include "Fw/Port/InputSerializePort.hpp"
 #endif
@@ -274,7 +275,7 @@ class QueuedAsyncProductPortsOnlyComponentBase :
     void productRecvIn_handler(
         const FwIndexType portNum, //!< The port number
         FwDpIdType id, //!< The container id
-        const Fw::Buffer& buffer, //!< The buffer
+        Fw::Buffer& buffer, //!< The buffer, taken by the container built over it
         const Fw::Success& status //!< The buffer status
     );
 

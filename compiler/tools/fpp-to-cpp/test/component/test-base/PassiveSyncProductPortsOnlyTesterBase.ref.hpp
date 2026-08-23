@@ -10,6 +10,7 @@
 #include <cstdio>
 
 #include "Fw/Comp/PassiveComponentBase.hpp"
+#include "Fw/LanguageHelpers.hpp"
 #include "Fw/Port/InputSerializePort.hpp"
 #include "Fw/Types/Assert.hpp"
 #include "Fw/Types/ExternalString.hpp"

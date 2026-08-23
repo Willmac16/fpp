@@ -11,6 +11,7 @@
 #include "Fw/Dp/DpGetPortAc.hpp"
 #include "Fw/Dp/DpSendPortAc.hpp"
 #include "Fw/FPrimeBasicTypes.hpp"
+#include "Fw/LanguageHelpers.hpp"
 #if !FW_DIRECT_PORT_CALLS
 #include "Fw/Port/InputSerializePort.hpp"
 #endif

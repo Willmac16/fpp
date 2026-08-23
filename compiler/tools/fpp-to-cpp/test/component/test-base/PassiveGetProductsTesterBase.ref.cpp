@@ -1729,8 +1729,8 @@ void PassiveGetProductsTesterBase ::
       const Fw::Buffer& buffer
   )
 {
-  DpSend e = { id, buffer.alias() };
-  this->productSendHistory->push_back(e);
+  DpSend e(id, Fw::move(buffer));
+  this->productSendHistory->push_back(Fw::move(e));
 }
 
 void PassiveGetProductsTesterBase ::

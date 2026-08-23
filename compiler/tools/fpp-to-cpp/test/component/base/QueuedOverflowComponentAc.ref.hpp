@@ -14,6 +14,7 @@
 #include "Fw/Comp/ActiveComponentBase.hpp"
 #include "Fw/Dp/DpResponsePortAc.hpp"
 #include "Fw/FPrimeBasicTypes.hpp"
+#include "Fw/LanguageHelpers.hpp"
 #include "Fw/Log/LogPortAc.hpp"
 #include "Fw/Log/LogTextPortAc.hpp"
 #if !FW_DIRECT_PORT_CALLS
@@ -1149,7 +1150,7 @@ class QueuedOverflowComponentBase :
     void productRecvInHook_handler(
         const FwIndexType portNum, //!< The port number
         FwDpIdType id, //!< The container id
-        const Fw::Buffer& buffer, //!< The buffer
+        Fw::Buffer& buffer, //!< The buffer, taken by the container built over it
         const Fw::Success& status //!< The buffer status
     );
 

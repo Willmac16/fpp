@@ -29,10 +29,10 @@ jobs:
             pgo: false
             gc: immix
             linker: system
-            max_inline_depth: 128
-            max_caller_size: 4096
-            max_callee_size: 1024
-            small_function_size: 24
+            max_inline_depth: 8192
+            max_caller_size: 8192
+            max_callee_size: 8192
+            small_function_size: 8
           - runner: ubuntu-22.04
             artifact: manylinux_2_28_x86_64
             container: quay.io/pypa/manylinux_2_28_x86_64
@@ -42,10 +42,10 @@ jobs:
             pgo: false
             gc: immix
             linker: lld
-            max_inline_depth: 256
+            max_inline_depth: 8192
             max_caller_size: 8192
-            max_callee_size: 1536
-            small_function_size: 36
+            max_callee_size: 8192
+            small_function_size: 8
           - runner: ubuntu-22.04-arm
             artifact: manylinux_2_28_aarch64
             container: quay.io/pypa/manylinux_2_28_aarch64
@@ -55,10 +55,10 @@ jobs:
             pgo: false
             gc: immix
             linker: lld
-            max_inline_depth: 128
+            max_inline_depth: 4096
             max_caller_size: 4096
-            max_callee_size: 1024
-            small_function_size: 24
+            max_callee_size: 4096
+            small_function_size: 8
     runs-on: ${{ matrix.runner }}
     container:
       image: ${{ matrix.container || '' }}

@@ -32,7 +32,7 @@ jobs:
             max_inline_depth: 8192
             max_caller_size: 8192
             max_callee_size: 8192
-            small_function_size: 8
+            small_function_size: 64
           - runner: ubuntu-22.04
             artifact: manylinux_2_28_x86_64
             container: quay.io/pypa/manylinux_2_28_x86_64
@@ -45,7 +45,7 @@ jobs:
             max_inline_depth: 8192
             max_caller_size: 8192
             max_callee_size: 8192
-            small_function_size: 8
+            small_function_size: 64
           - runner: ubuntu-22.04-arm
             artifact: manylinux_2_28_aarch64
             container: quay.io/pypa/manylinux_2_28_aarch64
@@ -58,7 +58,7 @@ jobs:
             max_inline_depth: 4096
             max_caller_size: 4096
             max_callee_size: 4096
-            small_function_size: 8
+            small_function_size: 64
     runs-on: ${{ matrix.runner }}
     container:
       image: ${{ matrix.container || '' }}
